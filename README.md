@@ -32,8 +32,11 @@ ql repo https://ghproxy.com/https://github.com/Yun-City/City.git "jd_|jx_|gua_|j
  ```
  ql raw <fileurl>
  ```
-
-
+ - 青龙一键安装依赖
+ ```
+ docker exec -it qinglong bash -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Yun-City/City/main/Shell/QLOneKeyDependency.sh | sh)"
+ ```
+ 
 ### 安装青龙需要一些的依赖
 <details>
 <summary>查看依赖列表</summary>
