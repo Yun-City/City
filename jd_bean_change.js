@@ -60,7 +60,7 @@ let Today = new Date();
 let strAllNotify="";
 let llPetError=false;
 let RemainMessage = '\n';
-RemainMessage += "提醒:" + '\n';
+RemainMessage += "⭕提醒:⭕" + '\n';
 RemainMessage += '【极速金币】京东极速版->我的->金币(极速版使用)\n';
 RemainMessage += '【京东赚赚】微信->京东赚赚小程序->底部赚好礼->提现无门槛红包(京东使用)\n';
 RemainMessage += '【京东秒杀】京东->中间频道往右划找到京东秒杀->中间点立即签到->兑换无门槛红包(京东使用)\n';
@@ -101,9 +101,10 @@ if ($.isNode() && process.env.BEANCHANGE_USERGP4) {
 if ($.isNode() && process.env.BEANCHANGE_DISABLECASH) {
 	DisableCash = process.env.BEANCHANGE_DISABLECASH;
 }
-if ($.isNode() && process.env.BEANCHANGE_ENABLEMONTH) {
-	EnableMonth = process.env.BEANCHANGE_ENABLEMONTH;
-}
+//取消月结查询
+//if ($.isNode() && process.env.BEANCHANGE_ENABLEMONTH) {
+	//EnableMonth = process.env.BEANCHANGE_ENABLEMONTH;
+//}
 if ($.isNode() && process.env.BEANCHANGE_ALLNOTIFY) {
 	
 	var strTempNotify=process.env.BEANCHANGE_ALLNOTIFY ? process.env.BEANCHANGE_ALLNOTIFY.split('&') : [];
@@ -113,7 +114,7 @@ if ($.isNode() && process.env.BEANCHANGE_ALLNOTIFY) {
 		}
 	}
 	console.log(`检测到设定了公告,将在推送信息中置顶显示...`);
-	strAllNotify = `【公告】\n`+strAllNotify;
+	strAllNotify = `【✨✨✨✨公告✨✨✨✨】\n`+strAllNotify;
 	console.log(strAllNotify);
 }
 
@@ -253,46 +254,46 @@ if ($.isNode()) {
 	}
 	//组1通知
 	if (ReceiveMessageGp4) {
-		allMessage2Gp4 = `【商品白嫖活动领取提醒】\n` + ReceiveMessageGp4;
+		allMessage2Gp4 = `【⏰商品白嫖活动领取提醒⏰】\n` + ReceiveMessageGp4;
 	}
 	if (WarnMessageGp4) {
 		if (allMessage2Gp4) {
 			allMessage2Gp4 = `\n` + allMessage2Gp4;
 		}
-		allMessage2Gp4 = `【商品白嫖活动任务提醒】\n` + WarnMessageGp4 + allMessage2Gp4;
+		allMessage2Gp4 = `【⏰商品白嫖活动任务提醒⏰】\n` + WarnMessageGp4 + allMessage2Gp4;
 	}
 
 	//组2通知
 	if (ReceiveMessageGp2) {
-		allMessage2Gp2 = `【商品白嫖活动领取提醒】\n` + ReceiveMessageGp2;
+		allMessage2Gp2 = `【⏰商品白嫖活动领取提醒⏰】\n` + ReceiveMessageGp2;
 	}
 	if (WarnMessageGp2) {
 		if (allMessage2Gp2) {
 			allMessage2Gp2 = `\n` + allMessage2Gp2;
 		}
-		allMessage2Gp2 = `【商品白嫖活动任务提醒】\n` + WarnMessageGp2 + allMessage2Gp2;
+		allMessage2Gp2 = `【⏰商品白嫖活动任务提醒⏰】\n` + WarnMessageGp2 + allMessage2Gp2;
 	}
 
 	//组3通知
 	if (ReceiveMessageGp3) {
-		allMessage2Gp3 = `【商品白嫖活动领取提醒】\n` + ReceiveMessageGp3;
+		allMessage2Gp3 = `【⏰商品白嫖活动领取提醒⏰】\n` + ReceiveMessageGp3;
 	}
 	if (WarnMessageGp3) {
 		if (allMessage2Gp3) {
 			allMessage2Gp3 = `\n` + allMessage2Gp3;
 		}
-		allMessage2Gp3 = `【商品白嫖活动任务提醒】\n` + WarnMessageGp3 + allMessage2Gp3;
+		allMessage2Gp3 = `【⏰商品白嫖活动任务提醒⏰】\n` + WarnMessageGp3 + allMessage2Gp3;
 	}
 
 	//其他通知
 	if (allReceiveMessage) {
-		allMessage2 = `【商品白嫖活动领取提醒】\n` + allReceiveMessage;
+		allMessage2 = `【⏰商品白嫖活动领取提醒⏰】\n` + allReceiveMessage;
 	}
 	if (allWarnMessage) {
 		if (allMessage2) {
 			allMessage2 = `\n` + allMessage2;
 		}
-		allMessage2 = `【商品白嫖活动任务提醒】\n` + allWarnMessage + allMessage2;
+		allMessage2 = `【⏰商品白嫖活动任务提醒⏰】\n` + allWarnMessage + allMessage2;
 	}
 
 	if (intPerSent > 0) {
@@ -406,7 +407,7 @@ if ($.isNode()) {
 
 })()
 .catch((e) => {
-	$.log('', ` ${$.name}, 失败! 原因: ${e}!`, '')
+	$.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
 })
 .finally(() => {
 	$.done();
@@ -429,19 +430,19 @@ async function showMsg() {
 	
 	if (userIndex2 != -1) {
 		IndexGp2 += 1;
-		ReturnMessageTitle = `【账号${IndexGp2}】${$.nickName || $.UserName}\n`;
+		ReturnMessageTitle = `【账号${IndexGp2}🆔】${$.nickName || $.UserName}\n`;
 	}
 	if (userIndex3 != -1) {
 		IndexGp3 += 1;
-		ReturnMessageTitle = `【账号${IndexGp3}】${$.nickName || $.UserName}\n`;
+		ReturnMessageTitle = `【账号${IndexGp3}🆔】${$.nickName || $.UserName}\n`;
 	}
 	if (userIndex4 != -1) {
 		IndexGp4 += 1;
-		ReturnMessageTitle = `【账号${IndexGp4}】${$.nickName || $.UserName}\n`;
+		ReturnMessageTitle = `【账号${IndexGp4}🆔】${$.nickName || $.UserName}\n`;
 	}
 	if (userIndex2 == -1 && userIndex3 == -1 && userIndex4 == -1) {
 		IndexAll += 1;
-		ReturnMessageTitle = `【账号${IndexAll}】${$.nickName || $.UserName}\n`;
+		ReturnMessageTitle = `【账号${IndexAll}🆔】${$.nickName || $.UserName}\n`;
 	}
 
 	if ($.levelName || $.JingXiang){
@@ -451,19 +452,19 @@ async function showMsg() {
 				$.levelName = $.levelName.substring(0, 2);
 
 			if ($.levelName == "注册")
-				$.levelName = `普通`;
+				$.levelName = `😊普通`;
 
 			if ($.levelName == "钻石")
-				$.levelName = `钻石`;
+				$.levelName = `💎钻石`;
 
 			if ($.levelName == "金牌")
-				$.levelName = `金牌`;
+				$.levelName = `🥇金牌`;
 
 			if ($.levelName == "银牌")
-				$.levelName = `银牌`;
+				$.levelName = `🥈银牌`;
 
 			if ($.levelName == "铜牌")
-				$.levelName = `铜牌`;
+				$.levelName = `🥉铜牌`;
 
 			if ($.isPlusVip == 1)
 				ReturnMessage += `${$.levelName}Plus`;
@@ -481,8 +482,8 @@ async function showMsg() {
 	}
 	if (llShowMonth) {
 		ReturnMessageMonth = ReturnMessage;
-		ReturnMessageMonth += `\n【上月收入】：${$.allincomeBean}京豆 \n`;
-		ReturnMessageMonth += `【上月支出】：${$.allexpenseBean}京豆 \n`;
+		ReturnMessageMonth += `\n【上月收入】：${$.allincomeBean}京豆 🐶\n`;
+		ReturnMessageMonth += `【上月支出】：${$.allexpenseBean}京豆 🐶\n`;
 
 		console.log(ReturnMessageMonth);
 
@@ -717,7 +718,7 @@ async function showMsg() {
 			}
 		}
 	}
-	ReturnMessage += `红包明细\n`;
+	ReturnMessage += `🧧🧧🧧红包明细🧧🧧🧧\n`;
 	ReturnMessage += `${$.message}`;
 
 	if (userIndex2 != -1) {
@@ -737,7 +738,7 @@ async function showMsg() {
 
 	if ($.isNode() && WP_APP_TOKEN_ONE) {
 		if (TempBaipiao) {
-			TempBaipiao = `【商品白嫖活动提醒】\n` + TempBaipiao;
+			TempBaipiao = `【⏰商品白嫖活动提醒⏰】\n` + TempBaipiao;
 			ReturnMessage = TempBaipiao + `\n` + ReturnMessage;
 		}
 		ReturnMessage=`【账号名称】${$.nickName || $.UserName}\n`+ReturnMessage;
@@ -817,8 +818,8 @@ async function bean() {
 	//await queryexpirejingdou();//过期京豆
 	//$.todayOutcomeBean=$.todayOutcomeBean+$.expirejingdou;
 	await redPacket(); //过期红包
-	// console.log(`昨日收入：${$.incomeBean}个京豆 `);
-	// console.log(`昨日支出：${$.expenseBean}个京豆 `)
+	// console.log(`昨日收入：${$.incomeBean}个京豆 🐶`);
+	// console.log(`昨日支出：${$.expenseBean}个京豆 🐶`)
 }
 
 async function Monthbean() {
@@ -967,10 +968,10 @@ function getSign(functionid, body, uuid) {
 			"client": "apple",
 			"clientVersion": "10.1.0"
 		}
-		let HostArr = ['jdsign.cf', 'signer.n1z.lu']
+		let HostArr = ['jdsign.cf', 'signer.nz.lu']
 		let Host = HostArr[Math.floor((Math.random() * HostArr.length))]
 			let options = {
-			url: `https://cdn.n1z.lu/ddo`,
+			url: `https://cdn.nz.lu/ddo`,
 			body: JSON.stringify(data),
 			headers: {
 				Host,
@@ -1187,7 +1188,7 @@ function queryexpirejingdou() {
 							})
 							$.expirejingdou = data['expirejingdou'][0]['expireamount'];
 							// if ($.expirejingdou > 0) {
-							//   $.message += `\n今日将过期：${$.expirejingdou}京豆 `;
+							//   $.message += `\n今日将过期：${$.expirejingdou}京豆 🐶`;
 							// }
 						}
 					} else {
@@ -1399,7 +1400,7 @@ async function getjdfruit() {
 		$.post(option, (err, resp, data) => {
 			try {
 				if (err) {
-					console.log('\n东东农场: API查询请求失败 !!!!');
+					console.log('\n东东农场: API查询请求失败 ‼️‼️');
 					console.log(JSON.stringify(err));
 					$.logErr(err);
 				} else {
@@ -1435,7 +1436,7 @@ function jdfruitRequest(function_id, body = {}, timeout = 1000) {
 			$.get(taskfruitUrl(function_id, body), (err, resp, data) => {
 				try {
 					if (err) {
-						console.log('\n东东农场: API查询请求失败 !!!!')
+						console.log('\n东东农场: API查询请求失败 ‼️‼️')
 						console.log(JSON.stringify(err));
 						console.log(`function_id:${function_id}`)
 						$.logErr(err);
@@ -1463,7 +1464,7 @@ async function PetRequest(function_id, body = {}) {
 			try {
 				if (err) {
 					llPetError=true;
-					console.log('\n东东萌宠: API查询请求失败 !!!!');
+					console.log('\n东东萌宠: API查询请求失败 ‼️‼️');
 					console.log(JSON.stringify(err));
 					$.logErr(err);
 				} else {
@@ -1534,7 +1535,10 @@ function cash() {
 				} else {
 					if (safeGet(data)) {
 						data = JSON.parse(data);
-						$.JDtotalcash = data.data.goldBalance;
+						if (data.data.goldBalance)
+							$.JDtotalcash = data.data.goldBalance;
+						else
+							console.log(`领现金查询失败，服务器没有返回具体值.`)
 					}
 				}
 			} catch (e) {
@@ -2127,7 +2131,7 @@ function Env(t, e) {
 			this.logSeparator = "\n",
 			this.startTime = (new Date).getTime(),
 			Object.assign(this, e),
-			this.log("", `${this.name}, 开始!`)
+			this.log("", `🔔${this.name}, 开始!`)
 		}
 		isNode() {
 			return "undefined" != typeof module && !!module.exports
@@ -2450,7 +2454,7 @@ function Env(t, e) {
 				}
 			};
 			if (this.isMute || (this.isSurge() || this.isLoon() ? $notification.post(e, s, i, o(r)) : this.isQuanX() && $notify(e, s, i, o(r))), !this.isMuteLog) {
-				let t = ["", "==============系统通知=============="];
+				let t = ["", "==============📣系统通知📣=============="];
 				t.push(e),
 				s && t.push(s),
 				i && t.push(i),
@@ -2464,7 +2468,7 @@ function Env(t, e) {
 		}
 		logErr(t, e) {
 			const s = !this.isSurge() && !this.isQuanX() && !this.isLoon();
-			s ? this.log("", `${this.name}, 错误!`, t.stack) : this.log("", `${this.name}, 错误!`, t)
+			s ? this.log("", `❗️${this.name}, 错误!`, t.stack) : this.log("", `❗️${this.name}, 错误!`, t)
 		}
 		wait(t) {
 			return new Promise(e => setTimeout(e, t))
@@ -2472,7 +2476,7 @@ function Env(t, e) {
 		done(t = {}) {
 			const e = (new Date).getTime(),
 			s = (e - this.startTime) / 1e3;
-			this.log("", `${this.name}, 结束!  ${s} 秒`),
+			this.log("", `🔔${this.name}, 结束! 🕛 ${s} 秒`),
 			this.log(),
 			(this.isSurge() || this.isQuanX() || this.isLoon()) && $done(t)
 		}
