@@ -15,10 +15,11 @@ ql repo https://ghproxy.com/https://github.com/Yun-City/City.git "jd_|jx_|gua_|j
 
 * 想跑gua开卡的可以加,false改成true
     ```
-    export guaopencard_All="false"
-    export guaopencard_addSku_All="false"
-    export guaopencardRun_All="false"
-    export guaopencard_draw="false"
+	export guaopencard_All="true" # 青蛙开卡总开关
+    export guaopencard_addSku_All="false" # 青蛙开卡加购
+    export guaopencardRun_All="true" # 青蛙开卡做任务
+    export guaopencard_draw="true" # 青蛙开卡抽奖
+	export guaopencard_rewardBean="1,2,3" # 京豆奖励判断 | 1=邀请 2=开卡 3=关注  | 填1,2,3
     ```
 
 
