@@ -23,6 +23,12 @@ docker exec -it qinglong bash -c "$(curl -fsSL  https://raw.githubusercontents.c
 
 
 
+【青龙依赖一键配置】
+
+```bash
+docker exec -it qinglong bash -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Yun-City/City/main/Shell/QLOneKeyDependency.sh | sh)"
+```
+
 【NvJdc一键配置】
 
 ```bash
@@ -51,10 +57,6 @@ bash <(curl -sL  https://raw.githubusercontents.com/buqian123/Tasks/main/onekey-
  - 更新单个脚本文件
  ```
  ql raw <fileurl>
- ```
- - 青龙一键安装依赖
- ```
- docker exec -it qinglong bash -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Yun-City/City/main/Shell/QLOneKeyDependency.sh | sh)"
  ```
  
 ### 安装青龙需要一些的依赖
