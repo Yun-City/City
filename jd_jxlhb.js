@@ -44,17 +44,17 @@ const BASE_URL = 'https://m.jingxi.com/cubeactive/steprewardv3'
       '活动入口：京喜app-》我的-》京喜领88元红包\n' +
       '助力逻辑：先自己京东账号相互助力，如有剩余助力机会，则助力作者\n' +
       '温馨提示：如提示助力火爆，可尝试寻找京东客服')
-  let res = await getAuthorShareCode('https://raw.githubusercontent.com/Aa123ron-lv/updateTeam/master/shareCodes/jxhb.json')
+  let res = await getAuthorShareCode('https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/jxhb.json')
   if (!res) {
-    $.http.get({url: 'https://purge.jsdelivr.net/gh/Aa123ron-lv/updateTeam@master/shareCodes/jxhb.json'}).then((resp) => {}).catch((e) => $.log('刷新CDN异常', e));
+    $.http.get({url: 'https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/jxhb.json'}).then((resp) => {}).catch((e) => $.log('刷新CDN异常', e));
     await $.wait(1000)
-    res = await getAuthorShareCode('https://cdn.jsdelivr.net/gh/Aa123ron-lv/updateTeam@master/shareCodes/jxhb.json')
+    res = await getAuthorShareCode('https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/jxhb.json')
   }
   if (res && res.activeId) $.activeId = res.activeId;
-  let res2 = await getAuthorShareCode('https://raw.githubusercontent.com/shu123fflewzc/updateTeam/main/shareCodes/jxhb.json')
+  let res2 = await getAuthorShareCode('https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/jxhb.json')
   if (!res2) {
     await $.wait(1000)
-    res2 = await getAuthorShareCode('https://raw.fastgit.org/shu123fflewzc/updateTeam/main/shareCodes/jxhb.json')
+    res2 = await getAuthorShareCode('https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/jxhb.json')
   }
   $.authorMyShareIds = [...((res && res.codes) || []),...(res2 || [])];
   //开启红包,获取互助码
