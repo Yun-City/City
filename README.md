@@ -8,6 +8,26 @@
 ql repo https://ghproxy.com/https://github.com/Yun-City/City.git "jd_|jx_|gua_|jddj_|getJDCookie" "activity|backUp" "^jd[^_]|USER|function|utils|sendnotify|ZooFaker_Necklace.js|JDJRValidator_|sign_graphics_validate|ql"
 ```
 
+【安装docker、安装2.9.3青龙、配置本仓库】
+
+```bash
+wget -q  https://raw.githubusercontents.com/buqian123/Tasks/main/ql.sh -O ql.sh && bash ql.sh
+```
+
+
+【已安装青龙的用户一键配置代码 配置City仓库助力】
+
+```bash
+docker exec -it qinglong bash -c "$(curl -fsSL  https://raw.githubusercontents.com/buqian123/Tasks/main/1customCDN.sh)"
+```
+
+
+
+【NvJdc一键配置】
+
+```bash
+bash <(curl -sL  https://raw.githubusercontents.com/buqian123/Tasks/main/onekey-install-nvjdc.sh)
+```
 
 #### 说明
 
