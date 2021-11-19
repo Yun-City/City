@@ -395,9 +395,7 @@ function cashOut(id,poolBaseId,prizeGroupId,prizeBaseId,) {
 
 function invite() {
   let t = +new Date()
-  let inviterId = [
-    "5V7vHE23qh2EkdBHXRFDuA=="
-  ][Math.floor((Math.random() * 1))]
+  let inviterId = [][Math.floor((Math.random() * 1))]
   var headers = {
     'Host': 'api.m.jd.com',
     'accept': 'application/json, text/plain, */*',
