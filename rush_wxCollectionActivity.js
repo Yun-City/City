@@ -6,7 +6,11 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 let cookiesArr = [], cookie = '', message = '';
 let activityIdList = [
-
+    'a39eca744f604aeea030d4b3fc022f11',
+    'be78234b03294ef4a56df820bb88a554',
+    'c8ae3304db0e4277901933c5fe92fb06',
+    'fc071a14fc884244bdc1943965b2983f',
+    'c40105ba403e4b2cbde742ab11fc38c3',
 ]
 let lz_cookie = {}
 
@@ -37,7 +41,7 @@ $.keywordsNum = 0;
         $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
         return;
     }
-    activityIdList = await getActivityIdList('https://raw.githubusercontent.com/FKPYW/777777/master/code/wxCollectionActivity.json')
+    // activityIdList = await getActivityIdList('https://raw.githubusercontent.com/FKPYW/dongge/master/code/wxCollectionActivity.json')
     for(let a in activityIdList){
         activityId = activityIdList[a];
         console.log("开起第 "+ a +" 个活动，活动id："+activityId)
