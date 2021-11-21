@@ -7,17 +7,17 @@
 =================================Quantumultx=========================
 [task_local]
 #5G超级盲盒
-0 0,1-23/3 * * * https://raw.githubusercontent.com/Aaron-lv123/sync/jd_scripts/jd_mohe.js, tag=5G超级盲盒, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+0 0,1-23/3 * * * https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_mohe.js, tag=5G超级盲盒, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 
 =================================Loon===================================
 [Script]
-cron "0 0,1-23/3 * * *" script-path=https://raw.githubusercontent.com/Aaron-lv123/sync/jd_scripts/jd_mohe.js,tag=5G超级盲盒
+cron "0 0,1-23/3 * * *" script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_mohe.js,tag=5G超级盲盒
 
 ===================================Surge================================
-5G超级盲盒 = type=cron,cronexp="0 0,1-23/3 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/Aaron-lv123/sync/jd_scripts/jd_mohe.js
+5G超级盲盒 = type=cron,cronexp="0 0,1-23/3 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_mohe.js
 
 ====================================小火箭=============================
-5G超级盲盒 = type=cron,script-path=https://raw.githubusercontent.com/Aaron-lv123/sync/jd_scripts/jd_mohe.js, cronexpr="0 0,1-23/3 * * *", timeout=3600, enable=true
+5G超级盲盒 = type=cron,script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_mohe.js, cronexpr="0 0,1-23/3 * * *", timeout=3600, enable=true
  */
 const $ = new Env('5G超级盲盒');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -47,9 +47,11 @@ $.shareId = [];
       '活动地址: https://blindbox5g.jd.com\n' +
       '活动时间：2021-8-2到2021-10-29\n' +
       '更新时间：2021-8-8 19:00');
-  $.http.get({url: 'https://purge.jsdelivr.net/gh/Aa123ron-lv123/updateTeam@master/shareCodes/jd_shareCodes.json'}).then((resp) => {}).catch((e) => console.log('刷新CDN异常', e));
+  $.http.get({url: 'https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/jd_shareCodes.json'}).then((resp) => {}).catch((e) => console.log('刷新CDN异常', e));
   await $.wait(1000)
-  await updateShareCodesCDN('https://cdn.jsdelivr.net/gh/A123aron-lv123/updateTeam@master/shareCodes/jd_shareCodes.json')
+  await updateShareCodesCDN('https://cdn.jsdelivr.net/gh/Yun-City/City@master/shareCodes/jd_shareCodes.json')
+  await $.wait(1000)
+  await getShareCode()
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       cookie = cookiesArr[i];
@@ -81,7 +83,7 @@ $.shareId = [];
     if ($.isNode()) await notify.sendNotify($.name, allMessage);
     $.msg($.name, '', allMessage, {"open-url": "https://blindbox5g.jd.com"})
   }
-  $.shareId = [...($.shareId || []), ...($.updatePkActivityIdRes || [])];
+  $.shareId = [...($.shareId || []), ...($.updatePkActivityIdRes || []), ...($.zero205Code || [])];
   for (let v = 0; v < cookiesArr.length; v++) {
     cookie = cookiesArr[v];
     $.index = v + 1;
@@ -443,6 +445,29 @@ function updateShareCodesCDN(url) {
     })
   })
 }
+
+function getShareCode() {
+  return new Promise(resolve => {
+    $.get({
+      url: "https://cdn.jsdelivr.net/gh/Yun-City/City@master/shareCodes/jd_shareCodes.json",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/87.0.4280.88"
+      }
+    }, async (err, resp, data) => {
+      try {
+        if (err) {
+        } else {
+          $.zero205Code = JSON.parse(data) || []
+        }
+      } catch (e) {
+        $.logErr(e, resp)
+      } finally {
+        resolve();
+      }
+    })
+  })
+}
+
 function TotalBean() {
   return new Promise(async resolve => {
     const options = {
