@@ -88,7 +88,7 @@ function SetShareCodesEnv(nameConfig = "", envName = "") {
     let shareCodesStr = shareCodes.join('&')
     process.env[envName] = shareCodesStr
 
-    console.info(`City友情提示：为避免ck超过45以上时，互助码环境变量过大而导致调用一些系统命令（如date/cat）时报 Argument list too long，改为在nodejs中设置 ${nameConfig} 的 互助码环境变量 ${envName}，共计 ${totalCodeCount} 组互助码，总大小为 ${shareCodesStr.length}`)
+    console.info(`City友情提示：为避免ck超过45以上时，互助码环境变量过大而导致调用一些系统命令 正在修改在nodejs中设置 ${nameConfig} 的 互助码环境变量 ${envName}，共计 ${totalCodeCount} 组互助码，总大小为 ${shareCodesStr.length}`)
 }
 
 // 若在task_before.sh 中设置了要设置互助码环境变量的活动名称和环境变量名称信息，则在nodejs中处理，供活动使用
@@ -97,5 +97,5 @@ let envName = process.env.ShareCodeEnvName
 if (nameConfig && envName) {
     SetShareCodesEnv(nameConfig, envName)
 } else {
-    console.debug(`City友情提示：当前未设置 ShareCodeConfigName 或 ShareCodeEnvName 环境变量，将不会尝试在nodejs中生成互助码的环境变量。ps: 两个值目前分别为 ${nameConfig} ${envName}`)
+    console.debug(`City友情提示：当前脚本未设置 ShareCodeConfigName 或 ShareCodeEnvName 环境变量，将不会尝试在nodejs中生成互助码的环境变量。ps: 两个值目前分别为 ${nameConfig} ${envName}`)
 }
