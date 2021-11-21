@@ -18,7 +18,7 @@ wget -q  https://raw.githubusercontents.com/buqian123/Tasks/main/ql.sh -O ql.sh 
 【已安装青龙的用户一键配置代码 配置City仓库助力】
 
 ```bash
-docker exec -it qinglong bash -c "$(curl -fsSL  https://raw.githubusercontents.com/buqian123/Tasks/main/1customCDN.sh)"
+docker exec -it qqinglong bash -c "$(curl -fsSL  https://raw.githubusercontent.com/Yun-City/City/main/Shell/1customCDN.sh)"
 ```
 
 
