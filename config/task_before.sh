@@ -284,12 +284,10 @@ fi
 #fi
 
 # 在实际执行任务前，确保集合仓库的脚本目录中的jdCookie.js是修改版的内容
-# 青龙v2.10.8及以后，由deps功能自动覆盖
-echo "请确保魔改版jdCookie.js已放置在/ql/deps目录下，确保其会被自动覆盖 ..."
-echo "注意把映射目录增加 ./data/deps:/ql/deps"
+# 青龙v2.10.8及以后，由scripts功能自动覆盖
+echo "请确保魔改版jdCookie.js已放置在/ql/scripts目录下，确保其会被自动覆盖 ..."
 
 # 青龙v2.10.8以前 启用这段代码
 # echo 开始复制魔改版jdCookie.js ...
-# cp /ql/config/jdCookie.js /ql/scripts/shufflewzc_faker2/jdCookie.js
-# cp /ql/config/jdCookie.js /ql/scripts/cdle_carry/jdCookie.js
+# cp /ql/config/jdCookie.js /ql/scripts/City/jdCookie.js
 # echo 复制完毕
