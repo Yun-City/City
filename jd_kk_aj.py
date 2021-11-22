@@ -287,7 +287,7 @@ def getSystemConfigForNew(header):
 
 def getCode():
     try:
-        url = 'https://gitee.com/curtinlv/Public/raw/master/code.txt'
+        url = 'https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/anjia.txt'
         response = requests.get(url)
         code = response.text
         if response.status_code == 200 and len(code) > 30:
