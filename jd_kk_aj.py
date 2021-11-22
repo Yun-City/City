@@ -350,7 +350,7 @@ def start():
             Masternickname = nickname
             print(f"ck1的助力码：{signUuid}")
             print(f"shareuserid4minipg：{shareuserid4minipg}")
-            print(f"用户{a}[{nickname}]>>助力>>>[Curtinlv]")
+            print(f"用户{a}[{nickname}]>>助力>>>[]")
             accessLog(header, accessLogbody)
             bindWithVender(ck)
             a += 1
