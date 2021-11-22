@@ -23,7 +23,7 @@ except Exception as e:
 requests.packages.urllib3.disable_warnings()
 
 
-run_send='yes'              # yes或no, yes则启用通知推送服务
+run_send='no'              # yes或no, yes则启用通知推送服务
 
 
 # 获取pin
