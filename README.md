@@ -130,7 +130,7 @@ bash <(curl -sL  https://raw.githubusercontents.com/buqian123/Tasks/main/onekey-
 
 * [@NobyDa](https://github.com/NobyDa)
 * [@Andy Woo](https://t.me/update_help_group)
-* [@Oreo](https://github.com/Oreomeow) 「青龙Faker仓库一键安装配置」
+* [@Oreo](https://github.com/Oreomeow) 「青龙仓库一键安装配置」
 * [@Aaron-lv](https://github.com/Aaron-lv/sync) 「小小」
 * [@ccwav](https://github.com/ccwav/QLScript2) 「白嫖榜」
 * [@cdle](https://github.com/cdle/carry) 「老年人」
