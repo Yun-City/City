@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Build 20211124-001-test
+## Build 20211124-002-test
 
 ## 导入通用变量与函数
 dir_shell=/ql/shell
@@ -740,6 +740,12 @@ ps -ef|grep "$1"|grep -Ev "$2"|awk '{print $1}'|xargs kill -9
 install_deps_scripts(){
     GithubProxyUrl="https://ghproxy.com/"
     
+    switch_status=(
+      on
+      on
+      on
+    )
+    
     scripts_name=(
       ql.js
       sendNotify.js
@@ -756,10 +762,14 @@ install_deps_scripts(){
         curl -I -m 2 -s -w "%{http_code}\n" -o /dev/null $1
     }
     
-    for ((i = 0; i < ${#scripts_url[*]}; i++)); do
-        tmp_scripts_url="${scripts_url[i]}"
+    download_scripts(){
+        tmp_scripts_url=$1
         [[ "$(test_connect $tmp_scripts_url)" -ne "200" ]] && tmp_scripts_url="$GithubProxyUrl$tmp_scripts_url"
-        curl -L -m 10 -s $tmp_scripts_url -o $dir_config/${scripts_name[i]}
+        curl -L -m 10 -s $tmp_scripts_url -o $dir_config/$2
+    }
+    
+    for ((i = 0; i < ${#scripts_url[*]}; i++)); do
+        [[ ${switch_status[i]} = "on" ]] && download_scripts ${scripts_url[i]} ${scripts_name[i]}
         [[ -d $dir_dep && -f $dir_config/${scripts_name[i]} ]] && cp -rf $dir_config/${scripts_name[i]} $dir_dep
         [[ -f $dir_config/${scripts_name[i]} ]] && find $dir_scripts -type f -name ${scripts_name[i]}|xargs -n 1 cp -rf $dir_config/${scripts_name[i]}
     done
