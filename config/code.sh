@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Build 20211009-001
+## Build 20211124-001-test
 
 ## 导入通用变量与函数
 dir_shell=/ql/shell
@@ -10,8 +10,7 @@ dir_shell=/ql/shell
 ## 将"repo=$repo1"改成repo=$repo2"或其他，以默认调用其他仓库脚本日志
 ## 也可自行搜索本脚本内的"name_js=("和"name_js_only",将"repo"改成"repo2"或其他，用以自由组合调用仓库的脚本日志
 repo1='Yun-City_City'                       #预设的 city 仓库
-repo2='buqian123_faker3'                          #预设的 buqian123_faker3仓库
-repo=$repo1                                        #默认调用 city 仓库脚本日志
+repo=$repo1                                 #默认用 city 仓库日志
 
 ## 调试模式开关，默认是0，表示关闭；设置为1，表示开启
 DEBUG="1"
@@ -31,7 +30,12 @@ CLEANBAK_DAYS="2"
 ## 填 0 使用“全部一致互助模板”，所有账户要助力的码全部一致
 ## 填 1 使用“均等机会互助模板”，所有账户获得助力次数一致
 ## 填 2 使用“随机顺序互助模板”，本套脚本内账号间随机顺序助力，每次生成的顺序都不一致。
-HelpType="1"
+## 填 3 使用“车头A模式互助模板”，本套脚本内指定前 N 个账号优先助力，N 个以后账号间随机助力(随机部分账号顺序随机)。
+## 填 4 使用“车头B模式互助模板”，本套脚本内指定前 N 个账号优先助力，N 个以后账号间随机助力(随机部分账号顺序固定)。
+HelpType="4"
+
+## 定义前 N 个账号优先助力，N 个以后账号间随机助力。front_num="N"，N 定义值小于账号总数，
+front_num="5"
 
 ## 定义指定活动采用指定的互助模板。
 ## 设定值为 DiyHelpType="1" 表示启用功能；不填或填其他内容表示不开启功能。
@@ -74,7 +78,7 @@ UpdateType="1"
 ## 定义是否自动安装或修复缺失的依赖，默认为1，表示自动修复；留空或其他数值表示不修复。
 FixDependType="1"
 ## 定义监控修复的依赖名称
-package_name="canvas png-js date-fns axios crypto-js ts-md5 tslib @types/node dotenv typescript fs require tslib jsdom"
+package_name="canvas png-js date-fns axios crypto-js ts-md5 tslib @types/node dotenv typescript fs require tslib jsdom js-base64"
 
 ## 需组合的环境变量列表，env_name需要和var_name一一对应，如何有新活动按照格式添加(不懂勿动)
 env_name=(
@@ -118,22 +122,23 @@ var_name=(
 ## 所有有互助码的活动，把脚本名称列在 name_js 中，对应 config.sh 中互助码后缀列在 name_config 中，中文名称列在 name_chinese 中。
 ## name_js、name_config 和 name_chinese 中的三个名称必须一一对应。
 name_js=(
-  "$repo"_jd_fruit #农场
-  "$repo"_jd_pet   #萌宠
-  "$repo"_jd_plantBean #种豆
-  "$repo"_jd_dreamFactory #惊喜工厂
-  "$repo"_jd_jdfactory #惊喜工厂
-  "$repo"_jd_crazy_joy #无用
-  "$repo"_jd_jdzz #京东赚赚
-  "$repo"_jd_jxnc #惊喜牧场
-  "$repo"_jd_bookshop  #无用
-  "$repo"_jd_cash #签到领现金
-  "$repo"_jd_sgmh #闪购盲盒
-  "$repo"_jd_cfd #青蛙
-  "$repo"_jd_health  #东东健康社区
-  "$repo"_jd_carnivalcity #京东手机狂欢城
-  "$repo"_jd_city #无用
-  "$repo"_jd_moneyTree_heip #摇钱树
+  "$repo"_jd_fruit
+  "$repo"_jd_pet
+  "$repo"_jd_plantBean
+  "$repo"_jd_dreamFactory
+  "$repo"_jd_jdfactory
+  "$repo"_jd_crazy_joy
+  "$repo"_jd_jdzz
+  "$repo"_jd_jxnc
+  "$repo"_jd_bookshop
+  "$repo"_jd_cash
+  "$repo"_jd_sgmh
+  "$repo"_jd_cfd
+  "$repo"_jd_health
+  "$repo"_jd_carnivalcity
+  "$repo"_jd_city
+  "$repo4"_jd_moneyTree_heip
+  "$repo"_jd_cfd
 )
 
 name_config=(
@@ -321,6 +326,53 @@ export_codes_sub() {
                 done
                 ;;
 
+            3) ## 本套脚本内指定前 N 个账号优先助力，N 个以后账号间随机助力(随机部分账号顺序随机)。
+                HelpTemp="车头A模式"
+                echo -e "\n## 采用\"$HelpTemp\"互助模板"
+                [[ $user_sum -le $front_num ]] && front_num=$user_sum
+                for ((m = 0; m < ${#pt_pin[*]}; m++)); do
+                    tmp_for_other=""
+                    j=$((m + 1))
+                    for ((n = 0; n < $user_sum; n++)); do
+                        [[ $m -eq $n ]] && continue
+                        k=$((n + 1))
+                        if [[ $k -le $front_num ]]; then
+                            tmp_for_other="$tmp_for_other@\${$config_name_my$k}"
+                        fi
+                    done
+                    tmp_ramdom_for_other=""
+                    random_num_list=$(seq $((front_num+1)) $user_sum | sort -R)
+                    for x in $random_num_list; do
+                        tmp_ramdom_for_other="$tmp_ramdom_for_other@\${$config_name_my$x}"
+                    done
+                    echo "$config_name_for_other$j=\"$tmp_for_other$tmp_ramdom_for_other\"" | perl -pe "s|($config_name_for_other\d+=\")@|\1|"
+                done
+                ;;
+
+            4) ## 本套脚本内指定前 N 个账号优先助力，N 个以后账号间随机助力(随机部分账号顺序固定)。
+                HelpTemp="车头B模式"
+                echo -e "\n## 采用\"$HelpTemp\"互助模板"
+                [[ $user_sum -le $front_num ]] && front_num=$user_sum
+                random_num_list=$(seq $((front_num+1)) $user_sum | sort -R)
+                for ((m = 0; m < ${#pt_pin[*]}; m++)); do
+                    tmp_for_other=""
+                    j=$((m + 1))
+                    for ((n = 0; n < $user_sum; n++)); do
+                        [[ $m -eq $n ]] && continue
+                        k=$((n + 1))
+                        if [[ $k -le $front_num ]]; then
+                            tmp_for_other="$tmp_for_other@\${$config_name_my$k}"
+                        fi
+                    done
+                    tmp_ramdom_for_other=""
+                    for x in $random_num_list; do
+                        [[ $m -eq $((x-1)) ]] && continue
+                        tmp_ramdom_for_other="$tmp_ramdom_for_other@\${$config_name_my$x}"
+                    done
+                    echo "$config_name_for_other$j=\"$tmp_for_other$tmp_ramdom_for_other\"" | perl -pe "s|($config_name_for_other\d+=\")@|\1|"
+                done
+                ;;
+
             *) ## 按编号优先
                 HelpTemp="按编号优先"
                 echo -e "\n## 采用\"$HelpTemp\"互助模板"
@@ -376,6 +428,12 @@ export_all_codes() {
         2)
             echo "本套脚本内账号间随机顺序助力。"
             ;;
+        3)
+            echo "本套脚本内指定前 N 个账号优先助力，N 个以后账号间随机助力(随机部分账号顺序随机)。"
+            ;;
+        4)
+            echo "本套脚本内指定前 N 个账号优先助力，N 个以后账号间随机助力(随机部分账号顺序固定)。"
+            ;;
     	*)
             echo "按账号编号优先。"
             ;;
@@ -413,10 +471,11 @@ local i j k
 
 #更新配置文件中的互助码
 [[ ! -d $ShareCode_dir ]] && mkdir -p $ShareCode_dir
-[[ "$1" = "TokenJxnc" ]] && config_name_my=$1
+[[ "$1" = "TokenJxnc" ]] && config_name_my=$1    
 if [ ! -f $ShareCode_log ] || [ -z "$(cat $ShareCode_log | grep "^$config_name_my\d")" ]; then
    echo -e "\n## $chinese_name\n${config_name_my}1=''\n" >> $ShareCode_log
 fi
+echo -e "\n#【`date +%X`】 正在更新 $chinese_name 的互助码..."
 for ((i=1; i<=200; i++)); do
     local new_code="$(cat $latest_log_path | grep "^$config_name_my$i=.\+'$" | sed "s/\S\+'\([^']*\)'$/\1/")"
     local old_code="$(cat $ShareCode_log | grep "^$config_name_my$i=.\+'$" | sed "s/\S\+'\([^']*\)'$/\1/")"
@@ -452,6 +511,7 @@ local ShareCode_log="$ShareCode_dir/$config_name.log"
 local i j k
 
 #更新配置文件中的互助规则
+echo -e "\n#【`date +%X`】 正在更新 $chinese_name 的互助规则..."
 if [ -z "$(cat $ShareCode_log | grep "^$config_name_for_other\d")" ]; then
    echo -e "${config_name_for_other}1=\"\"" >> $ShareCode_log
 fi
@@ -601,7 +661,7 @@ if [[ $CLEANBAK = "1" ]]; then
             else
                 diff_time=$(($(date +%s) - $(date +%s -d "$log_date")))
             fi
-            [[ $diff_time -gt $(($CLEANBAK_DAYS * 86400)) ]] && rm -vf $log
+            [[ $diff_time -gt $(($CLEANBAK_DAYS * 86400)) ]] && rm -rf $log
         fi
     done
 fi
@@ -677,8 +737,37 @@ kill_proc(){
 ps -ef|grep "$1"|grep -Ev "$2"|awk '{print $1}'|xargs kill -9
 }
 
+install_deps_scripts(){
+    GithubProxyUrl="https://ghproxy.com/"
+    
+    scripts_name=(
+      ql.js
+      sendNotify.js
+      JD_DailyBonus.js
+    )
+    
+    scripts_url=(
+      https://raw.githubusercontent.com/ccwav/QLScript2/main/ql.js
+      https://raw.githubusercontent.com/ccwav/QLScript2/main/sendNotify.js
+      https://raw.githubusercontent.com/NobyDa/Script/master/JD-DailyBonus/JD_DailyBonus.js
+    )
+    
+    test_connect(){
+        curl -I -m 2 -s -w "%{http_code}\n" -o /dev/null $1
+    }
+    
+    for ((i = 0; i < ${#scripts_url[*]}; i++)); do
+        tmp_scripts_url="${scripts_url[i]}"
+        [[ "$(test_connect $tmp_scripts_url)" -ne "200" ]] && tmp_scripts_url="$GithubProxyUrl$tmp_scripts_url"
+        curl -L -m 10 -s $tmp_scripts_url -o $dir_config/${scripts_name[i]}
+        [[ -d $dir_dep && -f $dir_config/${scripts_name[i]} ]] && cp -rf $dir_config/${scripts_name[i]} $dir_dep
+        [[ -f $dir_config/${scripts_name[i]} ]] && find $dir_scripts -type f -name ${scripts_name[i]}|xargs -n 1 cp -rf $dir_config/${scripts_name[i]}
+    done
+}
+
 ## 执行并写入日志
 kill_proc "code.sh" "grep|$$" >/dev/null 2>&1
+install_deps_scripts &
 [[ $FixDependType = "1" ]] && [[ "$ps_num" -le $proc_num ]] && install_dependencies_all >/dev/null 2>&1 &
 latest_log=$(ls -r $dir_code | head -1)
 latest_log_path="$dir_code/$latest_log"
@@ -689,3 +778,10 @@ update_help
 
 ## 修改curtinlv入会领豆配置文件的参数
 [[ -f /ql/repo/curtinlv_JD-Script/OpenCard/OpenCardConfig.ini ]] && sed -i "4c JD_COOKIE = '$(echo $JD_COOKIE | sed "s/&/ /g; s/\S*\(pt_key=\S\+;\)\S*\(pt_pin=\S\+;\)\S*/\1\2/g;" | perl -pe "s| |&|g")'" /ql/repo/curtinlv_JD-Script/OpenCard/OpenCardConfig.ini
+
+## 魔改版 jdCookie.js 复制到 /ql/deps/。仅支持v2.10.8及以上版本的青龙
+[[ -d /ql/deps/ && -f /ql/config/jdCookie.js ]] && cp -rf /ql/config/jdCookie.js /ql/deps/
+## 魔改版 jdCookie.js 覆盖到 /ql/scripts/及子路径下的所有 jdCookie.js。支持v2.10.8 以下版本的青龙
+[[ -f /ql/config/jdCookie.js ]] && find /ql/scripts -type f -name jdCookie.js|xargs -n 1 cp -rf /ql/config/jdCookie.js
+
+exit

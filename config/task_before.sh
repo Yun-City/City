@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211009-001-test
+# Build 20211124-001
 
 name_js=(
   jd_fruit
@@ -39,6 +39,25 @@ name_config=(
   City
   MoneyTree
   TokenJxnc
+)
+name_chinese=(
+  东东农场
+  东东萌宠
+  京东种豆得豆
+  京喜工厂
+  东东工厂
+  crazyJoy任务
+  京东赚赚
+  京喜农场
+  口袋书店
+  签到领现金
+  闪购盲盒
+  京喜财富岛
+  东东健康社区
+  京东手机狂欢城
+  城城领现金
+  摇钱树
+  京喜token
 )
 env_name=(
   FRUITSHARECODES                     ## 1、东东农场互助码
@@ -163,6 +182,7 @@ team_task(){
         for ((i=0; i<${#teamer_array[*]}; i++)); do
             combine_team ${teamer_array[i]} ${team_array[i]} ${activityId[i]} ${activityUrl[i]}
             [[ $q -ge $(($user_sum/p)) ]] && q=$(($user_sum/p))
+            [[ q -lt 1 ]] && q=1
             for ((m = 0; m < $user_sum; m++)); do
                 j=$((m + 1))
                 x=$((m/q))
@@ -253,12 +273,9 @@ combine_only() {
                     . $dir_log/.ShareCode/${name_config[i]}.log
                     result=$(combine_sub ${var_name[i]})
                     if [[ $result ]]; then
-                        # 魔改说明：直接设置在ck超过45时，会导致env过大，部分系统命令无法执行，导致脚本执行失败
-                        #   这里改成设置一个标记，在nodejs中去实际设置环境变量
-                        # export ${env_name[i]}=$result
+                        export ShareCodeConfigChineseName=${name_chinese[i]}
                         export ShareCodeConfigName=${name_config[i]}
                         export ShareCodeEnvName=${env_name[i]}
-                        echo "设置环境变量标记 ShareCodeConfigName=${ShareCodeConfigName} ShareCodeEnvName=${ShareCodeEnvName}, 供nodejs去实际生成互助码环境变量"
                     fi
                 fi
                 ;;
@@ -282,12 +299,3 @@ fi
 #    . $dir_code/$latest_log
 #    combine_all
 #fi
-
-# 在实际执行任务前，确保集合仓库的脚本目录中的jdCookie.js是修改版的内容
-# 青龙v2.10.8及以后，由scripts功能自动覆盖
-echo "请确保魔改版jdCookie.js已放置在/ql/scripts目录下，确保其会被自动覆盖 ..."
-
-# 青龙v2.10.8以前 启用这段代码
-# echo 开始复制魔改版jdCookie.js ...
-# cp /ql/config/jdCookie.js /ql/scripts/City/jdCookie.js
-# echo 复制完毕
