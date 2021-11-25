@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211124-001
+# Build 20211125-002
 
 name_js=(
   jd_fruit
@@ -98,6 +98,8 @@ var_name=(
   TokenJxnc                           ## 17、京喜Token(京喜财富岛提现用)
 )
 
+local_scr=$1
+
 ## 临时屏蔽某账号运行活动脚本(账号序号匹配)
 TempBlock_JD_COOKIE(){
     source $file_env
@@ -141,23 +143,82 @@ TempBlock_JD_PT_PIN(){
 
 ## 随机账号运行活动
 Random_JD_COOKIE(){
+    combine_random(){
+        local combined_all ran_sub tmp i
+        if [[ $2 ]]; then
+            if [ $(echo $2|grep '[0-9]') ]; then
+                [[ $1 -lt $2 || $2 -lt 1 ]] && ran_num=$1
+                ran_sub="$(seq $1 | sort -R | head -$2)"
+                for i in $ran_sub; do
+                    tmp="${array[i]}"
+                    combined_all="$combined_all&$tmp"
+                done
+                jdCookie=$(echo $combined_all | sed 's/^&//g')
+                [[ ! -z $jdCookie ]] && export JD_COOKIE="$jdCookie"
+            fi
+        fi
+    }
+	
     [[ -z $JD_COOKIE ]] && source $file_env
     local envs=$(eval echo "\$JD_COOKIE")
     local array=($(echo $envs | sed 's/&/ /g'))
     local user_sum=${#array[*]}
-    local combined_all
-    if [[ $RandomMode = "1" ]]; then
-        [[ ! $ran_num ]] && ran_num=$user_sum
-        if [ $(echo $ran_num|grep '[0-9]') ]; then
-            [[ $ran_num -gt $user_sum || $ran_num -lt 2 ]] && ran_num=$user_sum
-            ran_sub="$(seq $user_sum | sort -R | head -$ran_num)"
-            for i in $ran_sub; do
-                tmp="${array[i]}"
-                combined_all="$combined_all&$tmp"
+    local t tmp_num
+    if [[ $RandomMode = "1" ]] && [[ $randomMode = "1" ]]; then
+        echo "随机账号模式与优先账号模式不能同时开启，请检查后重试！"
+    elif [[ $RandomMode = "1" ]] && [[ ! $randomMode || $randomMode = "0" ]]; then
+	    if [[ $random_envs ]]; then
+            local random_array=($(echo $random_envs | sed 's/&/ /g'))
+            for t in "${!random_array[@]}"; do
+                local random_script="$(echo ${random_array[t]}|awk -F "@" '{print $1}')"
+                local tmp_num="$(echo ${random_array[t]}|awk -F "@" '{print $2}')"
+                [[ $local_scr =~ $random_script ]] && ran_num=$tmp_num
             done
-            jdCookie=$(echo $combined_all | sed 's/^&//g')
-            [[ ! -z $jdCookie ]] && export JD_COOKIE="$jdCookie"
         fi
+        combine_random $user_sum $ran_num
+    fi
+}
+
+## 优先账号运行活动
+Priority_JD_COOKIE(){
+    combine_priority(){
+        local combined_all ran_sub jdCookie_priority jdCookie_random m n t
+        if [[ $2 ]]; then
+            if [ $(echo $2|grep '[0-9]') ]; then
+                [[ $1 -lt $2 || $2 -lt 1 ]] && pri_num=$1
+                ran_sub=$(seq $2 $1 | sort -R)
+                for ((m = 0; m < $2; m++)); do
+                    tmp="${array[m]}"
+                    jdCookie_priority="$jdCookie_priority&$tmp"
+                done
+                for n in $ran_sub; do
+                    tmp="${array[n]}"
+                    jdCookie_random="$jdCookie_random&$tmp"
+                done
+                combined_all="$jdCookie_priority$jdCookie_random"
+                jdCookie=$(echo $combined_all | perl -pe "{s|^&||; s|&&|&|; s|&$||}")
+                [[ ! -z $jdCookie ]] && export JD_COOKIE="$jdCookie"
+            fi
+        fi
+    }
+
+    [[ -z $JD_COOKIE ]] && source $file_env
+    local envs=$(eval echo "\$JD_COOKIE")
+    local array=($(echo $envs | sed 's/&/ /g'))
+    local user_sum=${#array[*]}
+    local t tmp_num
+    if [[ $RandomMode && $PriorityMode ]]; then
+        echo "随机账号模式与优先账号模式不能同时开启，请检查后重试！"
+    elif [[ ! $RandomMode || $RandomMode = "0" ]] && [[ $PriorityMode = "1" ]]; then
+	    if [[ $priority_envs ]]; then
+            local priority_array=($(echo $priority_envs | sed 's/&/ /g'))
+            for t in "${!priority_array[@]}"; do
+                local priority_script="$(echo ${priority_array[t]}|awk -F "@" '{print $1}')"
+                local tmp_num="$(echo ${priority_array[t]}|awk -F "@" '{print $2}')"
+                [[ $local_scr =~ $priority_script ]] && pri_num=$tmp_num
+            done
+        fi
+		combine_priority $user_sum $pri_num
     fi
 }
 
@@ -286,7 +347,7 @@ combine_only() {
     done
 }
 
-TempBlock_JD_COOKIE && TempBlock_JD_PT_PIN && Random_JD_COOKIE
+TempBlock_JD_COOKIE && TempBlock_JD_PT_PIN && Random_JD_COOKIE && Priority_JD_COOKIE
 
 if [ $scr_name ]; then
     team_task
