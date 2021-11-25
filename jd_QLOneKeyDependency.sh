@@ -65,6 +65,8 @@ npm install -g fs
 cd /ql
 npm install -g ws
 cd /ql
+npm install -g moment
+cd /ql
 npm install -g form-data
 cd /ql
 pip3 install requests
