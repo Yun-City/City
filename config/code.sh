@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Build 20211124-002-test
+## Build 20211125-001-test
 
 ## 导入通用变量与函数
 dir_shell=/ql/shell
@@ -32,10 +32,10 @@ CLEANBAK_DAYS="2"
 ## 填 2 使用“随机顺序互助模板”，本套脚本内账号间随机顺序助力，每次生成的顺序都不一致。
 ## 填 3 使用“车头A模式互助模板”，本套脚本内指定前 N 个账号优先助力，N 个以后账号间随机助力(随机部分账号顺序随机)。
 ## 填 4 使用“车头B模式互助模板”，本套脚本内指定前 N 个账号优先助力，N 个以后账号间随机助力(随机部分账号顺序固定)。
-HelpType="4"
+HelpType="1"
 
 ## 定义前 N 个账号优先助力，N 个以后账号间随机助力。front_num="N"，N 定义值小于账号总数，
-front_num="5"
+front_num="3"
 
 ## 定义指定活动采用指定的互助模板。
 ## 设定值为 DiyHelpType="1" 表示启用功能；不填或填其他内容表示不开启功能。
@@ -771,7 +771,7 @@ install_deps_scripts(){
     for ((i = 0; i < ${#scripts_url[*]}; i++)); do
         [[ ${switch_status[i]} = "on" ]] && download_scripts ${scripts_url[i]} ${scripts_name[i]}
         [[ -d $dir_dep && -f $dir_config/${scripts_name[i]} ]] && cp -rf $dir_config/${scripts_name[i]} $dir_dep
-        [[ -f $dir_config/${scripts_name[i]} ]] && find $dir_scripts -type f -name ${scripts_name[i]}|xargs -n 1 cp -rf $dir_config/${scripts_name[i]}
+        [[ -f $dir_config/${scripts_name[i]} ]] && find $dir_scripts -type f -name ${scripts_name[i]}|xargs -n 1 cp -rf $dir_config/${scripts_name[i]} && cp -rf $dir_config/${scripts_name[i]} $dir_scripts
     done
 }
 
@@ -790,8 +790,8 @@ update_help
 [[ -f /ql/repo/curtinlv_JD-Script/OpenCard/OpenCardConfig.ini ]] && sed -i "4c JD_COOKIE = '$(echo $JD_COOKIE | sed "s/&/ /g; s/\S*\(pt_key=\S\+;\)\S*\(pt_pin=\S\+;\)\S*/\1\2/g;" | perl -pe "s| |&|g")'" /ql/repo/curtinlv_JD-Script/OpenCard/OpenCardConfig.ini
 
 ## 魔改版 jdCookie.js 复制到 /ql/deps/。仅支持v2.10.8及以上版本的青龙
-[[ -d /ql/deps/ && -f /ql/config/jdCookie.js ]] && cp -rf /ql/config/jdCookie.js /ql/deps/
+[[ -d $dir_dep && -f $dir_config/jdCookie.js ]] && cp -rf $dir_config/jdCookie.js $dir_dep
 ## 魔改版 jdCookie.js 覆盖到 /ql/scripts/及子路径下的所有 jdCookie.js。支持v2.10.8 以下版本的青龙
-[[ -f /ql/config/jdCookie.js ]] && find /ql/scripts -type f -name jdCookie.js|xargs -n 1 cp -rf /ql/config/jdCookie.js
+[[ -f $dir_config/jdCookie.js ]] && find $dir_scripts -type f -name jdCookie.js|xargs -n 1 cp -rf $dir_config/jdCookie.js && cp -rf $dir_config/jdCookie.js $dir_scripts
 
 exit

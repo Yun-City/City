@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211125-002
+# Build 20211126-001
 
 name_js=(
   jd_fruit
@@ -115,16 +115,21 @@ TempBlock_JD_COOKIE(){
             [[ "${TempBlockCookieArray[t]}" = "$m" ]] && unset array[n]
         done
     done
-    jdCookie=$(echo ${array[*]} | sed 's/\ /\&/g')
-    [[ ! -z $jdCookie ]] && export JD_COOKIE="$jdCookie"
+    jdCookie_1=$(echo ${array[*]} | sed 's/\ /\&/g')
+    [[ ! -z $jdCookie_1 ]] && export JD_COOKIE="$jdCookie_1"
     temp_user_sum=${#array[*]}
 }
 
 ## 临时屏蔽某账号运行活动脚本(pt_pin匹配)
 TempBlock_JD_PT_PIN(){
-    [[ -z $JD_COOKIE ]] && source $file_env
+    if [[ $jdCookie_1 ]]; then
+        tmp_jdCookie=$jdCookie_1
+    else
+        source $file_env
+        tmp_jdCookie=$JD_COOKIE
+    fi
     local TempBlockPinArray=($TempBlockPin)
-    local envs=$(eval echo "\$JD_COOKIE")
+    local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
     local i m n t pt_pin_temp pt_pin_temp_block
     for i in "${!array[@]}"; do
@@ -136,8 +141,8 @@ TempBlock_JD_PT_PIN(){
             [[ "${pt_pin[i]}" =~ "${pt_pin_block[n]}" ]] && unset array[i]
         done
     done
-    jdCookie=$(echo ${array[*]} | sed 's/\ /\&/g')
-    [[ ! -z $jdCookie ]] && export JD_COOKIE="$jdCookie"
+    jdCookie_2=$(echo ${array[*]} | sed 's/\ /\&/g')
+    [[ ! -z $jdCookie_2 ]] && export JD_COOKIE="$jdCookie_2"
     temp_user_sum=${#array[*]}
 }
 
@@ -147,24 +152,33 @@ Random_JD_COOKIE(){
         local combined_all ran_sub tmp i
         if [[ $2 ]]; then
             if [ $(echo $2|grep '[0-9]') ]; then
-                [[ $1 -lt $2 || $2 -lt 1 ]] && ran_num=$1
-                ran_sub="$(seq $1 | sort -R | head -$2)"
+                [[ $user_sum -lt $2 || $2 -lt 1 ]] && ran_num=$user_sum
+                ran_sub="$(seq $user_sum | sort -R | head -$2)"
                 for i in $ran_sub; do
                     tmp="${array[i]}"
                     combined_all="$combined_all&$tmp"
                 done
-                jdCookie=$(echo $combined_all | sed 's/^&//g')
-                [[ ! -z $jdCookie ]] && export JD_COOKIE="$jdCookie"
+                jdCookie_3=$(echo $combined_all | sed 's/^&//g')
+                [[ ! -z $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
             fi
+        else
+            export JD_COOKIE="$tmp_jdCookie"
         fi
     }
-	
-    [[ -z $JD_COOKIE ]] && source $file_env
-    local envs=$(eval echo "\$JD_COOKIE")
+
+    if [[ $jdCookie_2 ]]; then
+        tmp_jdCookie=$jdCookie_2
+    elif [[ $jdCookie_1 ]]; then
+        tmp_jdCookie=$jdCookie_1
+    else
+        source $file_env
+        tmp_jdCookie=$JD_COOKIE
+    fi
+    local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
     local user_sum=${#array[*]}
     local t tmp_num
-    if [[ $RandomMode = "1" ]] && [[ $randomMode = "1" ]]; then
+    if [[ $RandomMode && $PriorityMode ]]; then
         echo "随机账号模式与优先账号模式不能同时开启，请检查后重试！"
     elif [[ $RandomMode = "1" ]] && [[ ! $randomMode || $randomMode = "0" ]]; then
 	    if [[ $random_envs ]]; then
@@ -175,19 +189,19 @@ Random_JD_COOKIE(){
                 [[ $local_scr =~ $random_script ]] && ran_num=$tmp_num
             done
         fi
-        combine_random $user_sum $ran_num
+        combine_random $ran_num
     fi
 }
 
 ## 优先账号运行活动
 Priority_JD_COOKIE(){
     combine_priority(){
-        local combined_all ran_sub jdCookie_priority jdCookie_random m n t
-        if [[ $2 ]]; then
-            if [ $(echo $2|grep '[0-9]') ]; then
-                [[ $1 -lt $2 || $2 -lt 1 ]] && pri_num=$1
-                ran_sub=$(seq $2 $1 | sort -R)
-                for ((m = 0; m < $2; m++)); do
+        local combined_all ran_sub jdCookie_priority jdCookie_random m n
+        if [[ $1 ]]; then
+            if [ $(echo $1|grep '[0-9]') ]; then
+                [[ $user_sum -lt $1 || $1 -lt 1 ]] && pri_num=$user_sum
+                ran_sub=$(seq $1 $user_sum | sort -R)
+                for ((m = 0; m < $1; m++)); do
                     tmp="${array[m]}"
                     jdCookie_priority="$jdCookie_priority&$tmp"
                 done
@@ -196,14 +210,23 @@ Priority_JD_COOKIE(){
                     jdCookie_random="$jdCookie_random&$tmp"
                 done
                 combined_all="$jdCookie_priority$jdCookie_random"
-                jdCookie=$(echo $combined_all | perl -pe "{s|^&||; s|&&|&|; s|&$||}")
-                [[ ! -z $jdCookie ]] && export JD_COOKIE="$jdCookie"
+                jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&&|&|; s|&$||}")
+                [[ ! -z $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
             fi
+        else
+            export JD_COOKIE="$tmp_jdCookie"
         fi
     }
 
-    [[ -z $JD_COOKIE ]] && source $file_env
-    local envs=$(eval echo "\$JD_COOKIE")
+    if [[ $jdCookie_2 ]]; then
+        tmp_jdCookie=$jdCookie_2
+    elif [[ $jdCookie_1 ]]; then
+        tmp_jdCookie=$jdCookie_1
+    else
+        source $file_env
+        tmp_jdCookie=$JD_COOKIE
+    fi
+    local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
     local user_sum=${#array[*]}
     local t tmp_num
@@ -218,7 +241,7 @@ Priority_JD_COOKIE(){
                 [[ $local_scr =~ $priority_script ]] && pri_num=$tmp_num
             done
         fi
-		combine_priority $user_sum $pri_num
+        combine_priority $pri_num
     fi
 }
 
