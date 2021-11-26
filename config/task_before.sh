@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211126-001
+# Build 20211126-002
 
 name_js=(
   jd_fruit
@@ -177,15 +177,15 @@ Random_JD_COOKIE(){
     local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
     local user_sum=${#array[*]}
-    local t tmp_num
-    if [[ $RandomMode && $PriorityMode ]]; then
-        echo "随机账号模式与优先账号模式不能同时开启，请检查后重试！"
+    local random_arrayt random_script tmp_num
+    if [[ $PriorityMode || $RotationMode && $RandomMode ]]; then
+        echo "随机模式不得与优先模式、轮换模式同时开启，请检查后重试！"
     elif [[ $RandomMode = "1" ]] && [[ ! $randomMode || $randomMode = "0" ]]; then
 	    if [[ $random_envs ]]; then
-            local random_array=($(echo $random_envs | sed 's/&/ /g'))
+            random_array=($(echo $random_envs | sed 's/&/ /g'))
             for t in "${!random_array[@]}"; do
-                local random_script="$(echo ${random_array[t]}|awk -F "@" '{print $1}')"
-                local tmp_num="$(echo ${random_array[t]}|awk -F "@" '{print $2}')"
+                random_script="$(echo ${random_array[t]}|awk -F "@" '{print $1}')"
+                tmp_num="$(echo ${random_array[t]}|awk -F "@" '{print $2}')"
                 [[ $local_scr =~ $random_script ]] && ran_num=$tmp_num
             done
         fi
@@ -199,7 +199,7 @@ Priority_JD_COOKIE(){
         local combined_all ran_sub jdCookie_priority jdCookie_random m n
         if [[ $1 ]]; then
             if [ $(echo $1|grep '[0-9]') ]; then
-                [[ $user_sum -lt $1 || $1 -lt 1 ]] && pri_num=$user_sum
+                [[ $user_sum -lt $1 || $1 -lt 1 ]] && pri_fixed_num=$user_sum
                 ran_sub=$(seq $1 $user_sum | sort -R)
                 for ((m = 0; m < $1; m++)); do
                     tmp="${array[m]}"
@@ -229,19 +229,83 @@ Priority_JD_COOKIE(){
     local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
     local user_sum=${#array[*]}
-    local t tmp_num
-    if [[ $RandomMode && $PriorityMode ]]; then
-        echo "随机账号模式与优先账号模式不能同时开启，请检查后重试！"
+    local priority_array t priority_script tmp_num
+    if [[ $RandomMode || $RotationMode && $PriorityMode ]]; then
+        echo "优先模式不得与随机模式、轮换模式同时开启，请检查后重试！"
     elif [[ ! $RandomMode || $RandomMode = "0" ]] && [[ $PriorityMode = "1" ]]; then
 	    if [[ $priority_envs ]]; then
-            local priority_array=($(echo $priority_envs | sed 's/&/ /g'))
+            priority_array=($(echo $priority_envs | sed 's/&/ /g'))
             for t in "${!priority_array[@]}"; do
-                local priority_script="$(echo ${priority_array[t]}|awk -F "@" '{print $1}')"
-                local tmp_num="$(echo ${priority_array[t]}|awk -F "@" '{print $2}')"
-                [[ $local_scr =~ $priority_script ]] && pri_num=$tmp_num
+                priority_script="$(echo ${priority_array[t]}|awk -F "@" '{print $1}')"
+                tmp_num="$(echo ${priority_array[t]}|awk -F "@" '{print $2}')"
+                [[ $local_scr =~ $priority_script ]] && pri_fixed_num=$tmp_num
             done
         fi
-        combine_priority $pri_num
+        combine_priority $pri_fixed_num
+    fi
+}
+
+
+## 轮换账号运行活动
+Rotation_JD_COOKIE(){
+    combine_rotation(){
+        local combined_all ran_sub jdCookie_rot_head jdCookie_rot_mid jdCookie_rot_tail rot_mid_start_num a b c tmp_1 tmp_2 tmp_3
+		if [[ $today_day -gt 1 ]]; then
+            if [[ $1 ]]; then
+                if [ $(echo $1|grep '[0-9]') ]; then
+                    [[ ! $(echo $rot_num|grep '[0-9]') || ! $rot_num || $rot_num -lt 1 || $((user_sum - rot_fixed_num)) -lt $rot_num ]] && rot_num=$((((user_sum-$1))/total_days)) && [[ $rot_num -lt 1 ]] && rot_num="1"
+                    rot_mid_start_num=$(($1 + rot_num * ((today_day - 1))))
+                    while [[ $user_sum -lt $rot_mid_start_num ]]; do rot_mid_start_num=$((rot_mid_start_num - user_sum + rot_fixed_num -1)); done
+                    [[ $user_sum -lt $1 || $1 -lt 1 ]] && rot_fixed_num=$user_sum
+                    for ((a = 0; a < $1; a++)); do
+                        tmp_1="${array[a]}"
+                        jdCookie_rot_head="$jdCookie_rot_head&$tmp_1"
+                    done
+                    for ((b = $rot_mid_start_num; b < $user_sum; b++)); do
+                        tmp_2="${array[b]}"
+                        jdCookie_rot_mid="$jdCookie_rot_mid&$tmp_2"
+                    done
+                    for ((c = $1; c < $((rot_mid_start_num-1)); c++)); do
+                        tmp_3="${array[c]}"
+                        jdCookie_rot_tail="$jdCookie_rot_tail&$tmp_3"
+                    done
+                    combined_all="$jdCookie_rot_head$jdCookie_rot_mid$jdCookie_rot_tail"
+                    jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&$||}")
+                    [[ ! -z $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
+                fi
+            fi
+        else
+            export JD_COOKIE="$tmp_jdCookie"
+        fi
+    }
+
+    if [[ $jdCookie_2 ]]; then
+        tmp_jdCookie=$jdCookie_2
+    elif [[ $jdCookie_1 ]]; then
+        tmp_jdCookie=$jdCookie_1
+    else
+        source $file_env
+        tmp_jdCookie=$JD_COOKIE
+    fi
+    local envs=$(eval echo "\$tmp_jdCookie")
+    local array=($(echo $envs | sed 's/&/ /g'))
+    local user_sum=${#array[*]}
+    local total_days=`cal | grep ^[0-9] | tail -1 | awk -F " " '{print $NF}'`
+    local today_day=`date +%d`
+    local rotation_array t rotation_script tmp_num_1 tmp_num_2
+    if [[ $RandomMode || $rotationMode && $RotationMode ]]; then
+        echo "轮换模式不得与随机模式、优先模式同时开启，请检查后重试！"
+    elif [[ $RotationMode = "1" ]]; then
+	    if [[ $rotation_envs ]]; then
+            rotation_array=($(echo $rotation_envs | sed 's/&/ /g'))
+            for t in "${!rotation_array[@]}"; do
+                rotation_script="$(echo ${rotation_array[t]}|awk -F "@" '{print $1}')"
+                tmp_num_1="$(echo ${rotation_array[t]}|awk -F "@" '{print $2}')"
+                tmp_num_2="$(echo ${rotation_array[t]}|awk -F "@" '{print $3}')"
+                [[ $local_scr =~ $rotation_script ]] && rot_fixed_num=$tmp_num_1 && rot_num=$tmp_num_2
+            done
+        fi
+        combine_rotation $rot_fixed_num
     fi
 }
 
@@ -370,7 +434,7 @@ combine_only() {
     done
 }
 
-TempBlock_JD_COOKIE && TempBlock_JD_PT_PIN && Random_JD_COOKIE && Priority_JD_COOKIE
+TempBlock_JD_COOKIE && TempBlock_JD_PT_PIN && Random_JD_COOKIE && Priority_JD_COOKIE && Rotation_JD_COOKIE
 
 if [ $scr_name ]; then
     team_task
