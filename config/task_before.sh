@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211127-001
+# Build 20211127-002
 
 name_js=(
   jd_fruit
@@ -229,9 +229,10 @@ Recombin_CK(){
             echo "# 正在应用 轮换Cookie 模式..."
             if [ $today_day -gt 1 ]; then
                 rot_num=$Recombin_CK_ARG2
-                [[ ! $(echo $rot_num|grep '[0-9]') || ! $rot_num || $rot_num -lt 1 || $((user_sum - $1)) -lt $rot_num ]] && rot_num=$((((user_sum-$1))/total_days)) && [[ $rot_num -lt 1 ]] && rot_num="1"
+                rot_total_num=$((user_sum - $1))
+                [[ ! $(echo $rot_num|grep '[0-9]') || ! $rot_num || $rot_num -lt 1 || $rot_total_num -lt $rot_num ]] && rot_num=$(((user_sum-$1)/total_days)) && [[ $rot_num -lt 1 ]] && rot_num="1"
                 rot_start_num=$(($1 + rot_num * ((today_day - 1))))
-                while [[ $((user_sum -$1 + 1)) -lt $rot_start_num ]]; do rot_start_num=$((rot_start_num - user_sum + $1 - 1)); done
+                while [[ $user_sum -lt $rot_start_num ]]; do rot_start_num=$((rot_start_num - rot_total_num)); done
                 echo -e "# 当前总共 $user_sum 个有效账号，其中前 $1 个账号为固定顺序。\n# 今天从第 $((rot_start_num + 1)) 个账号开始轮换，轮换频次为：$rot_num 个账号/天。"
                 for ((a = 0; a < $1; a++)); do
                     tmp_1="${array[a]}"
@@ -261,13 +262,12 @@ Recombin_CK(){
         local team_num="$2"
         local jd_zdjr_activityId="$3"
         local jd_zdjr_activityUrl="$4"
-        local combined_all jdCookie_team_part1 jdCookie_team_part2 jdCookie_3 j i k m n
+        local combined_all jdCookie_team_part1 jdCookie_team_part2 jdCookie_3 i j k m n
         if [[ $(echo $1|grep '[0-9]') ]] && [[ $(echo $2|grep '[0-9]') ]]; then
-            echo "正在应用 组队Cookie 模式..."
+            echo "# 正在应用 组队Cookie 模式..."
             [[ $user_sum -lt $1  ]] && teamer_num=$user_sum
-            [[ $team_num -ge $((user_sum/teamer_num)) ]] && team_num=$((user_sum/teamer_num))
-            [[ team_num -lt 1 ]] && team_num=1
-            echo -e "当前总共 $user_sum 个有效账号，每支队伍包含 $1 个账号，每个账号可以发起 $2 次组队。"
+            [[ $team_num -ge $((user_sum/teamer_num)) ]] && team_num=$((user_sum/teamer_num)) && [[ $team_num -lt 1 ]] && team_num=1
+            echo -e "# 当前总共 $user_sum 个有效账号，每支队伍包含 $1 个账号，每个账号可以发起 $2 次组队。"
             for ((i = 0; i < $user_sum; i++)); do
                 j=$((i + 1))
                 m=$((i/team_num))
@@ -296,10 +296,47 @@ Recombin_CK(){
                 fi
                 jdCookie_3=$(echo -e "$jdCookie_team_part1$jdCookie_team_part2")
                 if [[ $jdCookie_3 ]]; then
-                    [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
-                    node /ql/scripts/$local_scr
+                    export JD_COOKIE="$jdCookie_3"
+                    [[ $local_scr =~ ".js" ]] && node /ql/scripts/$local_scr
                 fi
             done
+        else
+            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
+            export JD_COOKIE="$tmp_jdCookie"
+        fi
+    }
+
+    ## 分段模式算法
+    combine_segmentation(){
+        local segment_length="$1"
+        local delay_seconds="$2"
+        local combined_all jdCookie_3 i j k m n
+        if [[ $(echo $1|grep '[0-9]') ]] && [[ $(echo $2|grep '[0-9]') ]]; then
+            echo "# 正在应用 分段Cookie 模式..."
+            [[ $user_sum -lt $1  ]] && segment_length=$user_sum
+            segment_num=$(((user_sum + segment_length -1)/segment_length)) && [[ $segment_num -lt 1 ]] && segment_num=1
+            echo -n "# 当前总共 $user_sum 个有效账号，每 $1 个账号分一段，一共分 $segment_num 段。"
+			echo -e "各分段脚本启动时间延迟为 $2 秒。\n# 注意：如果每段的运行时间较长，运行日志可能会显示混乱，此为正常现象。"
+            for ((i = 0; i < $user_sum; i++)); do
+                j=$((i + 1))
+                m=$((segment_length * i))
+                n=$((segment_length * j))
+				combined_all=""
+				for ((k = m; k < $n; k++)); do
+				    tmp="${array[k]}"
+				    combined_all="$combined_all&$tmp"
+				done
+                jdCookie_3=$(echo $combined_all | sed 's/^&//g')
+                if [[ $jdCookie_3 ]]; then
+                    export JD_COOKIE="$jdCookie_3"
+                    echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
+                    [[ $local_scr =~ ".js" ]] && node /ql/scripts/$local_scr &
+                    sleep $2					
+                fi
+            done
+        else
+            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
+            export JD_COOKIE="$tmp_jdCookie"
         fi
     }
 
@@ -326,10 +363,13 @@ Recombin_CK(){
             combine_priority $Recombin_CK_ARG1
             ;;
         3)
-            combine_rotation $Recombin_CK_ARG1
+            combine_rotation $Recombin_CK_ARG1 $Recombin_CK_ARG2
             ;;
         4)
             combine_team $Recombin_CK_ARG1 $Recombin_CK_ARG2 $Recombin_CK_ARG3 $Recombin_CK_ARG4
+            ;;
+        5)
+            combine_segmentation $Recombin_CK_ARG1 $Recombin_CK_ARG2
             ;;
         *)
             export JD_COOKIE="$tmp_jdCookie"
