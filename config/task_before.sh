@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211126-002
+# Build 20211127-001
 
 name_js=(
   jd_fruit
@@ -146,139 +146,164 @@ TempBlock_JD_PT_PIN(){
     temp_user_sum=${#array[*]}
 }
 
-## 随机账号运行活动
-Random_JD_COOKIE(){
+## CK 重组基础参数导入
+recombin_ck_args_set(){
+    local recombin_ck_array tmp_array i j k t
+	if [ $recombin_ck_envs ]; then
+        recombin_ck_array=($(echo $recombin_ck_envs | sed 's/&/ /g'))
+        for i in "${!recombin_ck_array[@]}"; do
+            tmp_array=($(echo ${recombin_ck_array[i]}|awk -F "@" '{for(i=1;i<=NF;i++){print $i;}}'))
+            for ((j = 0; j <= ${#tmp_array[*]}; j++)); do
+                k=$((j + 1))
+                eval local tmp_num_$k="${tmp_array[j]}"
+            done
+            if [[ $local_scr =~ $tmp_num_1 ]]; then
+				Recombin_CK_Mode="$tmp_num_2"
+                for ((m = 1; m <= 4; m++)); do
+                    n=$((m+2))
+                    eval Recombin_CK_ARG$m='$'"tmp_num_$n"
+                done
+            fi
+        done
+    fi
+    if [ $(echo $Recombin_CK_ARG1|grep '[0-9]') ]; then
+        [[ $user_sum -lt $Recombin_CK_ARG1 || $Recombin_CK_ARG1 -lt 1 ]] && Recombin_CK_ARG1=$user_sum
+    else
+        Recombin_CK_ARG1=""
+    fi
+}
+
+Recombin_CK(){
+    ## 随机模式算法
     combine_random(){
         local combined_all ran_sub tmp i
-        if [[ $2 ]]; then
-            if [ $(echo $2|grep '[0-9]') ]; then
-                [[ $user_sum -lt $2 || $2 -lt 1 ]] && ran_num=$user_sum
-                ran_sub="$(seq $user_sum | sort -R | head -$2)"
-                for i in $ran_sub; do
-                    tmp="${array[i]}"
-                    combined_all="$combined_all&$tmp"
-                done
-                jdCookie_3=$(echo $combined_all | sed 's/^&//g')
-                [[ ! -z $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
-            fi
+        if [ $1 ]; then
+            echo "# 正在应用 随机Cookie 模式..."
+            echo -e "# 当前总共 $user_sum 个有效账号，本次随机抽取 $1 个账号按随机顺序参加活动。"
+            ran_num=$1
+            ran_sub="$(seq $user_sum | sort -R | head -$1)"
+            for i in $ran_sub; do
+                tmp="${array[i]}"
+                combined_all="$combined_all&$tmp"
+            done
+            jdCookie_3=$(echo $combined_all | sed 's/^&//g')
+            [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
         else
+            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
 
-    if [[ $jdCookie_2 ]]; then
-        tmp_jdCookie=$jdCookie_2
-    elif [[ $jdCookie_1 ]]; then
-        tmp_jdCookie=$jdCookie_1
-    else
-        source $file_env
-        tmp_jdCookie=$JD_COOKIE
-    fi
-    local envs=$(eval echo "\$tmp_jdCookie")
-    local array=($(echo $envs | sed 's/&/ /g'))
-    local user_sum=${#array[*]}
-    local random_arrayt random_script tmp_num
-    if [[ $PriorityMode || $RotationMode && $RandomMode ]]; then
-        echo "随机模式不得与优先模式、轮换模式同时开启，请检查后重试！"
-    elif [[ $RandomMode = "1" ]] && [[ ! $randomMode || $randomMode = "0" ]]; then
-	    if [[ $random_envs ]]; then
-            random_array=($(echo $random_envs | sed 's/&/ /g'))
-            for t in "${!random_array[@]}"; do
-                random_script="$(echo ${random_array[t]}|awk -F "@" '{print $1}')"
-                tmp_num="$(echo ${random_array[t]}|awk -F "@" '{print $2}')"
-                [[ $local_scr =~ $random_script ]] && ran_num=$tmp_num
-            done
-        fi
-        combine_random $ran_num
-    fi
-}
-
-## 优先账号运行活动
-Priority_JD_COOKIE(){
+    ## 优先模式算法
     combine_priority(){
         local combined_all ran_sub jdCookie_priority jdCookie_random m n
-        if [[ $1 ]]; then
-            if [ $(echo $1|grep '[0-9]') ]; then
-                [[ $user_sum -lt $1 || $1 -lt 1 ]] && pri_fixed_num=$user_sum
-                ran_sub=$(seq $1 $user_sum | sort -R)
-                for ((m = 0; m < $1; m++)); do
-                    tmp="${array[m]}"
-                    jdCookie_priority="$jdCookie_priority&$tmp"
-                done
-                for n in $ran_sub; do
-                    tmp="${array[n]}"
-                    jdCookie_random="$jdCookie_random&$tmp"
-                done
-                combined_all="$jdCookie_priority$jdCookie_random"
-                jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&&|&|; s|&$||}")
-                [[ ! -z $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
-            fi
+        if [ $1 ]; then
+            echo "# 正在应用 优先Cookie 模式..."
+            echo -e "# 当前总共 $user_sum 个有效账号，其中前 $1 个账号为固定顺序。\n# 本次从第 $(($1 + 1)) 个账号开始按随机顺序参加活动。"
+            ran_sub=$(seq $1 $user_sum | sort -R)
+            for ((m = 0; m < $1; m++)); do
+                tmp="${array[m]}"
+                jdCookie_priority="$jdCookie_priority&$tmp"
+            done
+            for n in $ran_sub; do
+                tmp="${array[n]}"
+                jdCookie_random="$jdCookie_random&$tmp"
+            done
+            combined_all="$jdCookie_priority$jdCookie_random"
+            jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&&|&|; s|&$||}")
+            [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
         else
+            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
 
-    if [[ $jdCookie_2 ]]; then
-        tmp_jdCookie=$jdCookie_2
-    elif [[ $jdCookie_1 ]]; then
-        tmp_jdCookie=$jdCookie_1
-    else
-        source $file_env
-        tmp_jdCookie=$JD_COOKIE
-    fi
-    local envs=$(eval echo "\$tmp_jdCookie")
-    local array=($(echo $envs | sed 's/&/ /g'))
-    local user_sum=${#array[*]}
-    local priority_array t priority_script tmp_num
-    if [[ $RandomMode || $RotationMode && $PriorityMode ]]; then
-        echo "优先模式不得与随机模式、轮换模式同时开启，请检查后重试！"
-    elif [[ ! $RandomMode || $RandomMode = "0" ]] && [[ $PriorityMode = "1" ]]; then
-	    if [[ $priority_envs ]]; then
-            priority_array=($(echo $priority_envs | sed 's/&/ /g'))
-            for t in "${!priority_array[@]}"; do
-                priority_script="$(echo ${priority_array[t]}|awk -F "@" '{print $1}')"
-                tmp_num="$(echo ${priority_array[t]}|awk -F "@" '{print $2}')"
-                [[ $local_scr =~ $priority_script ]] && pri_fixed_num=$tmp_num
-            done
-        fi
-        combine_priority $pri_fixed_num
-    fi
-}
-
-
-## 轮换账号运行活动
-Rotation_JD_COOKIE(){
+    ## 轮换模式算法
     combine_rotation(){
-        local combined_all ran_sub jdCookie_rot_head jdCookie_rot_mid jdCookie_rot_tail rot_mid_start_num a b c tmp_1 tmp_2 tmp_3
-		if [[ $today_day -gt 1 ]]; then
-            if [[ $1 ]]; then
-                if [ $(echo $1|grep '[0-9]') ]; then
-                    [[ ! $(echo $rot_num|grep '[0-9]') || ! $rot_num || $rot_num -lt 1 || $((user_sum - rot_fixed_num)) -lt $rot_num ]] && rot_num=$((((user_sum-$1))/total_days)) && [[ $rot_num -lt 1 ]] && rot_num="1"
-                    rot_mid_start_num=$(($1 + rot_num * ((today_day - 1))))
-                    while [[ $user_sum -lt $rot_mid_start_num ]]; do rot_mid_start_num=$((rot_mid_start_num - user_sum + rot_fixed_num -1)); done
-                    [[ $user_sum -lt $1 || $1 -lt 1 ]] && rot_fixed_num=$user_sum
-                    for ((a = 0; a < $1; a++)); do
-                        tmp_1="${array[a]}"
-                        jdCookie_rot_head="$jdCookie_rot_head&$tmp_1"
-                    done
-                    for ((b = $rot_mid_start_num; b < $user_sum; b++)); do
-                        tmp_2="${array[b]}"
-                        jdCookie_rot_mid="$jdCookie_rot_mid&$tmp_2"
-                    done
-                    for ((c = $1; c < $((rot_mid_start_num-1)); c++)); do
-                        tmp_3="${array[c]}"
-                        jdCookie_rot_tail="$jdCookie_rot_tail&$tmp_3"
-                    done
-                    combined_all="$jdCookie_rot_head$jdCookie_rot_mid$jdCookie_rot_tail"
-                    jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&$||}")
-                    [[ ! -z $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
-                fi
+        # 当月总天数
+        local total_days=`cal | grep ^[0-9] | tail -1 | awk -F " " '{print $NF}'`
+        # 今天几号
+        local today_day=`date +%d`
+        local combined_all jdCookie_rot_head jdCookie_rot_mid jdCookie_rot_tail rot_start_num a b c tmp_1 tmp_2 tmp_3
+        if [ $1 ]; then
+            echo "# 正在应用 轮换Cookie 模式..."
+            if [ $today_day -gt 1 ]; then
+                rot_num=$Recombin_CK_ARG2
+                [[ ! $(echo $rot_num|grep '[0-9]') || ! $rot_num || $rot_num -lt 1 || $((user_sum - $1)) -lt $rot_num ]] && rot_num=$((((user_sum-$1))/total_days)) && [[ $rot_num -lt 1 ]] && rot_num="1"
+                rot_start_num=$(($1 + rot_num * ((today_day - 1))))
+                while [[ $((user_sum -$1 + 1)) -lt $rot_start_num ]]; do rot_start_num=$((rot_start_num - user_sum + $1 - 1)); done
+                echo -e "# 当前总共 $user_sum 个有效账号，其中前 $1 个账号为固定顺序。\n# 今天从第 $((rot_start_num + 1)) 个账号开始轮换，轮换频次为：$rot_num 个账号/天。"
+                for ((a = 0; a < $1; a++)); do
+                    tmp_1="${array[a]}"
+                    jdCookie_rot_head="$jdCookie_rot_head&$tmp_1"
+                done
+                for ((b = $rot_start_num; b < $user_sum; b++)); do
+                    tmp_2="${array[b]}"
+                    jdCookie_rot_mid="$jdCookie_rot_mid&$tmp_2"
+                done
+                for ((c = $1; c < $((rot_start_num-1)); c++)); do
+                    tmp_3="${array[c]}"
+                    jdCookie_rot_tail="$jdCookie_rot_tail&$tmp_3"
+                done
+                combined_all="$jdCookie_rot_head$jdCookie_rot_mid$jdCookie_rot_tail"
+                jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&$||}")
+                [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
             fi
         else
+            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
 
+    ## 组队模式算法
+    combine_team(){
+        local teamer_num="$1"
+        local team_num="$2"
+        local jd_zdjr_activityId="$3"
+        local jd_zdjr_activityUrl="$4"
+        local combined_all jdCookie_team_part1 jdCookie_team_part2 jdCookie_3 j i k m n
+        if [[ $(echo $1|grep '[0-9]') ]] && [[ $(echo $2|grep '[0-9]') ]]; then
+            echo "正在应用 组队Cookie 模式..."
+            [[ $user_sum -lt $1  ]] && teamer_num=$user_sum
+            [[ $team_num -ge $((user_sum/teamer_num)) ]] && team_num=$((user_sum/teamer_num))
+            [[ team_num -lt 1 ]] && team_num=1
+            echo -e "当前总共 $user_sum 个有效账号，每支队伍包含 $1 个账号，每个账号可以发起 $2 次组队。"
+            for ((i = 0; i < $user_sum; i++)); do
+                j=$((i + 1))
+                m=$((i/team_num))
+                n=$(((teamer_num - 1)*i + 1))
+                jdCookie_team_part1="${array[m]}"
+                jdCookie_team_part2=""
+                if [[ $j -le $team_num ]]; then
+                    for ((k = 1; k < $teamer_num; k++)); do
+                        jdCookie_team_part2="$jdCookie_team_part2&${array[n]}"
+                        let n++
+                    done
+                elif [[ $j -eq $((team_num + 1)) ]]; then
+                    for ((k = 1; k < $((teamer_num-1)); k++)); do
+                        jdCookie_team_part1="${array[m]}&${array[0]}"
+                        jdCookie_team_part2="$jdCookie_team_part2&${array[n]}"
+                        let n++
+                    done
+                elif [[ $j -gt $((team_num + 1)) ]]; then
+                    [[ $((n+1)) -le $user_sum ]] && n=$(((teamer_num - 1)*i)) || break
+                    for ((k = $i; k < $((i + teamer_num -1)); k++)); do
+                        jdCookie_team_part2="$jdCookie_team_part2&${array[n]}"
+                        let n++
+                        [[ $n = $m ]] && n=$((n+1))
+                        [[ $((n+1)) -gt $user_sum ]] && break
+                    done
+                fi
+                jdCookie_3=$(echo -e "$jdCookie_team_part1$jdCookie_team_part2")
+                if [[ $jdCookie_3 ]]; then
+                    [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
+                    node /ql/scripts/$local_scr
+                fi
+            done
+        fi
+    }
+
+    ## 导入基础 JD_COOKIE 变量
     if [[ $jdCookie_2 ]]; then
         tmp_jdCookie=$jdCookie_2
     elif [[ $jdCookie_1 ]]; then
@@ -287,86 +312,29 @@ Rotation_JD_COOKIE(){
         source $file_env
         tmp_jdCookie=$JD_COOKIE
     fi
+
     local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
     local user_sum=${#array[*]}
-    local total_days=`cal | grep ^[0-9] | tail -1 | awk -F " " '{print $NF}'`
-    local today_day=`date +%d`
-    local rotation_array t rotation_script tmp_num_1 tmp_num_2
-    if [[ $RandomMode || $rotationMode && $RotationMode ]]; then
-        echo "轮换模式不得与随机模式、优先模式同时开启，请检查后重试！"
-    elif [[ $RotationMode = "1" ]]; then
-	    if [[ $rotation_envs ]]; then
-            rotation_array=($(echo $rotation_envs | sed 's/&/ /g'))
-            for t in "${!rotation_array[@]}"; do
-                rotation_script="$(echo ${rotation_array[t]}|awk -F "@" '{print $1}')"
-                tmp_num_1="$(echo ${rotation_array[t]}|awk -F "@" '{print $2}')"
-                tmp_num_2="$(echo ${rotation_array[t]}|awk -F "@" '{print $3}')"
-                [[ $local_scr =~ $rotation_script ]] && rot_fixed_num=$tmp_num_1 && rot_num=$tmp_num_2
-            done
-        fi
-        combine_rotation $rot_fixed_num
-    fi
-}
 
-## 组队任务
-combine_team(){
-    p=$1
-    q=$2
-    export jd_zdjr_activityId=$3
-    export jd_zdjr_activityUrl=$4
-}
-
-team_task(){
-    [[ -z $JD_COOKIE ]] && source $file_env
-    local envs=$(eval echo "\$JD_COOKIE")
-    local array=($(echo $envs | sed 's/&/ /g'))
-    local user_sum=${#array[*]}
-    local i j k x y p q
-    local scr=$scr_name
-    local teamer_array=($teamer_num)
-    local team_array=($team_num)
-    if [[ -f /ql/scripts/$scr ]]; then
-        for ((i=0; i<${#teamer_array[*]}; i++)); do
-            combine_team ${teamer_array[i]} ${team_array[i]} ${activityId[i]} ${activityUrl[i]}
-            [[ $q -ge $(($user_sum/p)) ]] && q=$(($user_sum/p))
-            [[ q -lt 1 ]] && q=1
-            for ((m = 0; m < $user_sum; m++)); do
-                j=$((m + 1))
-                x=$((m/q))
-                y=$(((p - 1)*m + 1))
-                COOKIES_HEAD="${array[x]}"
-                COOKIES=""
-                if [[ $j -le $q ]]; then
-                    for ((n = 1; n < $p; n++)); do
-                        COOKIES="$COOKIES&${array[y]}"
-                        let y++
-                    done
-                elif [[ $j -eq $((q + 1)) ]]; then
-                    for ((n = 1; n < $((p-1)); n++)); do
-                        COOKIES_HEAD="${array[x]}&${array[0]}"
-                        COOKIES="$COOKIES&${array[y]}"
-                        let y++
-                    done
-                elif [[ $j -gt $((q + 1)) ]]; then
-                    [[ $((y+1)) -le $user_sum ]] && y=$(((p - 1)*m)) || break
-                    for ((n = $m; n < $((m + p -1)); n++)); do
-                        COOKIES="$COOKIES&${array[y]}"
-                        let y++
-                        [[ $y = $x ]] && y=$((y+1))
-                        [[ $((y+1)) -gt $user_sum ]] && break
-                    done
-                fi
-                result=$(echo -e "$COOKIES_HEAD$COOKIES")
-                if [[ $result ]]; then
-                    export JD_COOKIE=$result
-                    node /ql/scripts/$scr
-                fi
-#               echo $JD_COOKIE
-            done
-        done
-        exit
-    fi
+    recombin_ck_args_set # 基础参数设定
+    case $Recombin_CK_Mode in
+        1)
+            combine_random $Recombin_CK_ARG1
+            ;;
+        2)
+            combine_priority $Recombin_CK_ARG1
+            ;;
+        3)
+            combine_rotation $Recombin_CK_ARG1
+            ;;
+        4)
+            combine_team $Recombin_CK_ARG1 $Recombin_CK_ARG2 $Recombin_CK_ARG3 $Recombin_CK_ARG4
+            ;;
+        *)
+            export JD_COOKIE="$tmp_jdCookie"
+            ;;
+    esac
 }
 
 ## 组合互助码格式化为全局变量的函数
@@ -415,7 +383,7 @@ combine_all() {
 ## 正常依次运行时，组合互助码格式化为全局变量
 combine_only() {
     for ((i = 0; i < ${#env_name[*]}; i++)); do
-        case $1 in
+        case $local_scr in
             *${name_js[i]}*.js | *${name_js[i]}*.ts)
 	            if [[ -f $dir_log/.ShareCode/${name_config[i]}.log ]]; then
                     . $dir_log/.ShareCode/${name_config[i]}.log
@@ -434,13 +402,9 @@ combine_only() {
     done
 }
 
-TempBlock_JD_COOKIE && TempBlock_JD_PT_PIN && Random_JD_COOKIE && Priority_JD_COOKIE && Rotation_JD_COOKIE
+TempBlock_JD_COOKIE && TempBlock_JD_PT_PIN && Recombin_CK
 
-if [ $scr_name ]; then
-    team_task
-else
-	combine_only "$1"
-fi
+combine_only
 
 #if [[ $(ls $dir_code) ]]; then
 #    latest_log=$(ls -r $dir_code | head -1)
