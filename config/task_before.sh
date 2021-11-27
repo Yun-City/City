@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211127-002
+# Build 20211128-001
 
 name_js=(
   jd_fruit
@@ -189,7 +189,7 @@ Recombin_CK(){
             jdCookie_3=$(echo $combined_all | sed 's/^&//g')
             [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
         else
-            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
+            echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
@@ -213,7 +213,7 @@ Recombin_CK(){
             jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&&|&|; s|&$||}")
             [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
         else
-            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
+            echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
@@ -224,12 +224,12 @@ Recombin_CK(){
         local total_days=`cal | grep ^[0-9] | tail -1 | awk -F " " '{print $NF}'`
         # 今天几号
         local today_day=`date +%d`
+        local rot_total_num=$((user_sum - $1))
         local combined_all jdCookie_rot_head jdCookie_rot_mid jdCookie_rot_tail rot_start_num a b c tmp_1 tmp_2 tmp_3
-        if [ $1 ]; then
+        if [[ $(echo $1|grep '[0-9]') ]] && [[ $today_day -gt 1 ]]; then
             echo "# 正在应用 轮换Cookie 模式..."
-            if [ $today_day -gt 1 ]; then
+            if [[ $rot_total_num -gt 2 ]]; then
                 rot_num=$Recombin_CK_ARG2
-                rot_total_num=$((user_sum - $1))
                 [[ ! $(echo $rot_num|grep '[0-9]') || ! $rot_num || $rot_num -lt 1 || $rot_total_num -lt $rot_num ]] && rot_num=$(((user_sum-$1)/total_days)) && [[ $rot_num -lt 1 ]] && rot_num="1"
                 rot_start_num=$(($1 + rot_num * ((today_day - 1))))
                 while [[ $user_sum -lt $rot_start_num ]]; do rot_start_num=$((rot_start_num - rot_total_num)); done
@@ -249,9 +249,12 @@ Recombin_CK(){
                 combined_all="$jdCookie_rot_head$jdCookie_rot_mid$jdCookie_rot_tail"
                 jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&$||}")
                 [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
+            else
+                echo "# 由于参加轮换的账号数量不足 2 个，切换回 正常 Cookie 模式..."
+                export JD_COOKIE="$tmp_jdCookie"
             fi
         else
-            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
+            echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
@@ -301,7 +304,7 @@ Recombin_CK(){
                 fi
             done
         else
-            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
+            echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
@@ -335,7 +338,7 @@ Recombin_CK(){
                 fi
             done
         else
-            echo "# 由于参数缺失，切换回 正常Cookie 模式..."
+            echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
