@@ -1,6 +1,6 @@
 ## Version: v2.8.0
 ## Date: 2021-06-20
-## Mod: Build20211127-002
+## Mod: Build20211128-002
 ## Update Content: 可持续发展纲要\n1. session管理破坏性修改\n2. 配置管理可编辑config下文件\n3. 自定义脚本改为查看脚本\n4. 移除互助相关
 
 ## 上面版本号中，如果第2位数字有变化，那么代表增加了新的参数，如果只有第3位数字有变化，仅代表更新了注释，没有增加新的参数，可更新可不更新
@@ -233,6 +233,11 @@ Recombin_CK_ARG1=""
 ###           ③组队模式下：若填写为其他内容或留空，则自动退出模式。
 ###           ④分段模式下：若填写为其他内容或留空，则自动退出模式。(为了避免多段并发运行脚本造成死机)；
 Recombin_CK_ARG2=""
+
+## 重组Cookie前是否剔除失效Cookie
+### 释义：①如果开启，会在模式参数已设定的情况下，执行任务前进行 Cookie 有效性验证并剔除失效的 Cookie。受 Cookie 总数量影响任务启动的即时性；
+### 赋值要求：①填 1 表示开启，填其他内容或空值表示关闭；
+Remove_Void_CK=""
 
 ## 11.2 局部模式环境变量
 ### 释义：脚本1文件名关键词@参数1@参数2@参数3@参数4@参数5；
@@ -521,7 +526,20 @@ export BEANCHANGE_PERSENT="10" ##10合1
 ### 每月1号17点后如果执行资产查询，开启京东月资产变动的统计和推送.	
 ### 拆分通知和分组通知的变量都可以兼容.	
 ### 标题按照分组分别为 京东月资产变动 京东月资产变动#2 京东月资产变动#3 	
-### 开启 :  export BEANCHANGE_ENABLEMONTH="true"  
+### 开启 :  export BEANCHANGE_ENABLEMONTH="true"
+### 4.BEANCHANGE_ALLNOTIFY
+### 设置推送置顶公告，&表示换行，公告会出现在资产通知中(包括一对一).
+### 	例子 :  export BEANCHANGE_ALLNOTIFY="你好&今天天气不错...&&哥斯拉大战金刚...."  
+### 	显示:
+### 	
+### 	【✨✨✨✨公告✨✨✨✨】
+### 	 你好
+### 	 今天天气不错...
+### 	 
+### 	 哥斯拉大战金刚.... 
+### 5. BEANCHANGE_ENABLEMONTH
+### 当设定BEANCHANGE_ExJxBeans="true"且时间在17点之后，会自动将临期京豆兑换成喜豆续命.
+export BEANCHANGE_ExJxBeans="true"
 ## [3] sendNotify.js
 ### 1. 通知黑名单
 ### 如果通知标题在此变量里面存在（&隔开），则用屏蔽不发送通知，继承Ninja。例：export NOTIFY_SKIP_LIST="京东CK检测&京东资产变动"
@@ -573,8 +591,26 @@ export PUSH_PLUS_USER_hxtrip=""
 export JOY_GET20WHEN16="true"  ##控制16点才触发20京豆兑换.
 ### 13. CK失效时执行脚本
 export NOTIFY_CKTASK="ccwav_QLScript2_jd_CheckCK.js"
-### 14. 开启月结资产推送
-export BEANCHANGE_ENABLEMONTH="true"
+### 14. 用 WxPusher 进行一对一推送
+### 详细教程有人写了，不知道是幸运还是不幸: https://www.kejiwanjia.com/jiaocheng/27909.html
+### 填写变量 WP_APP_TOKEN_ONE,可在管理台查看: https://wxpusher.zjiecode.com/admin/main/app/appToken
+### 手动建立CK_WxPusherUid.json,可以参考CKName_cache.json,只是nickName改成Uid，
+### 每个用户的uid可在管理台查看: https://wxpusher.zjiecode.com/admin/main/wxuser/list
+### 另外: export WP_APP_ONE_TEXTSHOWREMARK="true"，启用一对一推送标题显示备注信息，默认不启用.
+### CK_WxPusherUid.json 内容(pt_pin 如果是汉字需要填写转码后的!):
+### [
+###   {
+### 	"pt_pin": "ccwav",
+### 	"Uid": "UID_AAAAAAAA"
+###   },
+###   {
+### 	"pt_pin": "中文名",
+### 	"Uid": "BBBBBBBBBB"
+###   }
+### ]
+### 15. NOTIFY_SKIP_TEXT
+### 如果此变量(&隔开)的关键字在通知内容里面存在,则屏蔽不发送通知.
+### 例子 :  export NOTIFY_SKIP_TEXT="忘了种植&异常"
 
 
 # X1a0He 环境变量

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211128-001
+# Build 20211128-002
 
 name_js=(
   jd_fruit
@@ -103,6 +103,7 @@ local_scr=$1
 ## 临时屏蔽某账号运行活动脚本(账号序号匹配)
 TempBlock_JD_COOKIE(){
     source $file_env
+    local envs=$(eval echo "\$JD_COOKIE")
     local TempBlockCookieInterval="$(echo $TempBlockCookie | perl -pe "{s|~|-|; s|_|-|}" | sed 's/\(\d\+\)-\(\d\+\)/{\1..\2}/g')"
     local TempBlockCookieArray=($(eval echo $TempBlockCookieInterval))
     local envs=$(eval echo "\$JD_COOKIE")
@@ -146,9 +147,45 @@ TempBlock_JD_PT_PIN(){
     temp_user_sum=${#array[*]}
 }
 
+# Cookie 有效性检查
+check_jd_ck(){
+    test_connect="$(curl -I -s https://bean.m.jd.com/bean/signIndex.action -w %{http_code} | tail -n1)"
+    test_jd_cookie="$(curl -s --noproxy "*" "https://bean.m.jd.com/bean/signIndex.action" -H "cookie: $1")"
+    if [ "$test_connect" -eq "302" ]; then
+        [[ "$test_jd_cookie" ]] && return 0 || return 1
+    else
+        return 2
+    fi
+}
+
+remove_void_ck(){
+    local tmp_jdCookie m void_ck_num
+    if [[ $jdCookie_2 ]]; then
+        tmp_jdCookie=$jdCookie_2
+    elif [[ $jdCookie_1 ]]; then
+        tmp_jdCookie=$jdCookie_1
+    else
+        source $file_env
+        tmp_jdCookie=$JD_COOKIE
+    fi
+    local envs=$(eval echo "\$JD_COOKIE")
+    local array=($(echo $envs | sed 's/&/ /g'))
+    local user_sum=${#array[*]}
+    echo -e "# 开始检查 Cookie 的有效性，可能花费一定时间，请耐心等待 ..."
+    echo -n "# 本次一共导入 $user_sum 个 Cookie ："
+    for ((m = 0; m < $user_sum; m++)); do		
+	    check_jd_ck ${array[m]}
+	    [[ $? = 1 ]] && unset array[m]
+    done
+    jdCookie_3=$(echo ${array[*]} | sed 's/\ /\&/g')
+	void_ck_num=$((user_sum - ${#array[*]}))
+    [[ $void_ck_num = 0 ]] && echo "未检查到失效 Cookie 。" || echo "其中有 $void_ck_num 个 Cookie 已失效。"
+    echo -e "# 开始启动任务 ... "
+}
+
 ## CK 重组基础参数导入
 recombin_ck_args_set(){
-    local recombin_ck_array tmp_array i j k t
+    local recombin_ck_array tmp_array i j k t tmp_jdCookie
 	if [ $recombin_ck_envs ]; then
         recombin_ck_array=($(echo $recombin_ck_envs | sed 's/&/ /g'))
         for i in "${!recombin_ck_array[@]}"; do
@@ -166,11 +203,6 @@ recombin_ck_args_set(){
             fi
         done
     fi
-    if [ $(echo $Recombin_CK_ARG1|grep '[0-9]') ]; then
-        [[ $user_sum -lt $Recombin_CK_ARG1 || $Recombin_CK_ARG1 -lt 1 ]] && Recombin_CK_ARG1=$user_sum
-    else
-        Recombin_CK_ARG1=""
-    fi
 }
 
 Recombin_CK(){
@@ -186,8 +218,8 @@ Recombin_CK(){
                 tmp="${array[i]}"
                 combined_all="$combined_all&$tmp"
             done
-            jdCookie_3=$(echo $combined_all | sed 's/^&//g')
-            [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
+            jdCookie_4=$(echo $combined_all | sed 's/^&//g')
+            [[ $jdCookie_4 ]] && export JD_COOKIE="$jdCookie_4"
         else
             echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
@@ -210,8 +242,8 @@ Recombin_CK(){
                 jdCookie_random="$jdCookie_random&$tmp"
             done
             combined_all="$jdCookie_priority$jdCookie_random"
-            jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&&|&|; s|&$||}")
-            [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
+            jdCookie_4=$(echo $combined_all | perl -pe "{s|^&||; s|&&|&|; s|&$||}")
+            [[ $jdCookie_4 ]] && export JD_COOKIE="$jdCookie_4"
         else
             echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
@@ -226,7 +258,7 @@ Recombin_CK(){
         local today_day=`date +%d`
         local rot_total_num=$((user_sum - $1))
         local combined_all jdCookie_rot_head jdCookie_rot_mid jdCookie_rot_tail rot_start_num a b c tmp_1 tmp_2 tmp_3
-        if [[ $(echo $1|grep '[0-9]') ]] && [[ $today_day -gt 1 ]]; then
+        if [[ $1 ]] && [[ $today_day -gt 1 ]]; then
             echo "# 正在应用 轮换Cookie 模式..."
             if [[ $rot_total_num -gt 2 ]]; then
                 rot_num=$Recombin_CK_ARG2
@@ -247,8 +279,8 @@ Recombin_CK(){
                     jdCookie_rot_tail="$jdCookie_rot_tail&$tmp_3"
                 done
                 combined_all="$jdCookie_rot_head$jdCookie_rot_mid$jdCookie_rot_tail"
-                jdCookie_3=$(echo $combined_all | perl -pe "{s|^&||; s|&$||}")
-                [[ $jdCookie_3 ]] && export JD_COOKIE="$jdCookie_3"
+                jdCookie_4=$(echo $combined_all | perl -pe "{s|^&||; s|&$||}")
+                [[ $jdCookie_4 ]] && export JD_COOKIE="$jdCookie_4"
             else
                 echo "# 由于参加轮换的账号数量不足 2 个，切换回 正常 Cookie 模式..."
                 export JD_COOKIE="$tmp_jdCookie"
@@ -265,8 +297,8 @@ Recombin_CK(){
         local team_num="$2"
         local jd_zdjr_activityId="$3"
         local jd_zdjr_activityUrl="$4"
-        local combined_all jdCookie_team_part1 jdCookie_team_part2 jdCookie_3 i j k m n
-        if [[ $(echo $1|grep '[0-9]') ]] && [[ $(echo $2|grep '[0-9]') ]]; then
+        local combined_all jdCookie_team_part1 jdCookie_team_part2 jdCookie_4 i j k m n
+        if [[ $1 ]] && [[ $(echo $2|grep '[0-9]') ]]; then
             echo "# 正在应用 组队Cookie 模式..."
             [[ $user_sum -lt $1  ]] && teamer_num=$user_sum
             [[ $team_num -ge $((user_sum/teamer_num)) ]] && team_num=$((user_sum/teamer_num)) && [[ $team_num -lt 1 ]] && team_num=1
@@ -297,9 +329,9 @@ Recombin_CK(){
                         [[ $((n+1)) -gt $user_sum ]] && break
                     done
                 fi
-                jdCookie_3=$(echo -e "$jdCookie_team_part1$jdCookie_team_part2")
-                if [[ $jdCookie_3 ]]; then
-                    export JD_COOKIE="$jdCookie_3"
+                jdCookie_4=$(echo -e "$jdCookie_team_part1$jdCookie_team_part2")
+                if [[ $jdCookie_4 ]]; then
+                    export JD_COOKIE="$jdCookie_4"
                     [[ $local_scr =~ ".js" ]] && node /ql/scripts/$local_scr
                 fi
             done
@@ -313,8 +345,8 @@ Recombin_CK(){
     combine_segmentation(){
         local segment_length="$1"
         local delay_seconds="$2"
-        local combined_all jdCookie_3 i j k m n
-        if [[ $(echo $1|grep '[0-9]') ]] && [[ $(echo $2|grep '[0-9]') ]]; then
+        local combined_all jdCookie_4 i j k m n
+        if [[ $1 ]] && [[ $(echo $2|grep '[0-9]') ]]; then
             echo "# 正在应用 分段Cookie 模式..."
             [[ $user_sum -lt $1  ]] && segment_length=$user_sum
             segment_num=$(((user_sum + segment_length -1)/segment_length)) && [[ $segment_num -lt 1 ]] && segment_num=1
@@ -324,14 +356,14 @@ Recombin_CK(){
                 j=$((i + 1))
                 m=$((segment_length * i))
                 n=$((segment_length * j))
-				combined_all=""
-				for ((k = m; k < $n; k++)); do
-				    tmp="${array[k]}"
-				    combined_all="$combined_all&$tmp"
-				done
-                jdCookie_3=$(echo $combined_all | sed 's/^&//g')
-                if [[ $jdCookie_3 ]]; then
-                    export JD_COOKIE="$jdCookie_3"
+                combined_all=""
+                for ((k = m; k < $n; k++)); do
+                    tmp="${array[k]}"
+                    combined_all="$combined_all&$tmp"
+                done
+                jdCookie_4=$(echo $combined_all | sed 's/^&//g')
+                if [[ $jdCookie_4 ]]; then
+                    export JD_COOKIE="$jdCookie_4"
                     echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
                     [[ $local_scr =~ ".js" ]] && node /ql/scripts/$local_scr &
                     sleep $2					
@@ -343,21 +375,28 @@ Recombin_CK(){
         fi
     }
 
-    ## 导入基础 JD_COOKIE 变量
-    if [[ $jdCookie_2 ]]; then
-        tmp_jdCookie=$jdCookie_2
-    elif [[ $jdCookie_1 ]]; then
-        tmp_jdCookie=$jdCookie_1
+    local jdCookie_3
+    recombin_ck_args_set # 基础参数设定
+    
+    if [ $(echo $Recombin_CK_ARG1|grep '[0-9]') ]; then
+        ## 移除无效 Cookie
+        [[ $Remove_Void_CK = 1 ]] && remove_void_ck
+        ## 导入基础 JD_COOKIE 变量
+        if [[ $jdCookie_3 ]]; then
+            tmp_jdCookie=$jdCookie_3
+        else
+            source $file_env
+            tmp_jdCookie=$JD_COOKIE
+        fi
+           
+        local envs=$(eval echo "\$tmp_jdCookie")
+        local array=($(echo $envs | sed 's/&/ /g'))
+        local user_sum=${#array[*]}
+        [[ $user_sum -lt $Recombin_CK_ARG1 || $Recombin_CK_ARG1 -lt 1 ]] && Recombin_CK_ARG1=$user_sum
     else
-        source $file_env
-        tmp_jdCookie=$JD_COOKIE
+        Recombin_CK_ARG1=""
     fi
 
-    local envs=$(eval echo "\$tmp_jdCookie")
-    local array=($(echo $envs | sed 's/&/ /g'))
-    local user_sum=${#array[*]}
-
-    recombin_ck_args_set # 基础参数设定
     case $Recombin_CK_Mode in
         1)
             combine_random $Recombin_CK_ARG1
