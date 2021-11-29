@@ -7,7 +7,7 @@ export JD_COOKIE="第1个cookie&第2个cookie"
 export kois=" 第1个cookie的pin & 第2个cookie的pin "
 环境变量kois中填入需要助力的pt_pin，有多个请用 '@'或'&'或空格 符号连接,不填默认全部账号内部随机助力
 脚本内或环境变量填写，优先环境变量
-地址：https://raw.githubusercontent.com/wuye999/myScripts/main/jd/jd_angryKoi.py
+地址：https://raw.githubusercontent.com/Yun-City/City/main/jd/jd_angryKoi.py
 更新：
 17/24 22:00 使用随机log,增加开红包
 '''
@@ -110,29 +110,31 @@ cookie_list=Judge_env().main_run()
 
 ## 获取通知服务
 class Msg(object):
-    def getsendNotify(self, a=1):
-        try:
-            url = 'https://cdn.jsdelivr.net/gh/Yun-City/City@main/sendNotify.py'
-            response = requests.get(url,timeout=3)
-            with open('sendNotify.py', "w+", encoding="utf-8") as f:
-                f.write(response.text)
-            return
-        except:
-            pass
-        if a < 5:
-            a += 1
-            return self.getsendNotify(a)
-
-    def main(self,f=1):
+    def getsendNotify(self):
+        url_list = [
+            'https://mirror.ghproxy.com/https://raw.githubusercontent.com/Yun-City/City/main/sendNotify.py',
+            'https://cdn.jsdelivr.net/gh/Yun-City/City@main/sendNotify.py',
+            'https://raw.githubusercontent.com/Yun-City/City/main/sendNotify.py',
+        ]
+        for e,url in enumerate(url_list):
+            try:
+                response = requests.get(url,timeout=10)
+                with open('sendNotify.py', "w+", encoding="utf-8") as f:
+                    f.write(response.text)
+                return
+            except:
+                if e >= (len(url_list)-1):
+                    print('获取通知服务失败，请检查网络连接...')               
+    def main(self,f=0):
         global send,msg,initialize
         sys.path.append(os.path.abspath('.'))
-        for n in range(3):
+        for _ in range(2):
             try:
                 from sendNotify import send,msg,initialize
                 break
             except:
                 self.getsendNotify()
-        l=['BARK','SCKEY','TG_BOT_TOKEN','TG_USER_ID','TG_API_HOST','TG_PROXY_HOST','TG_PROXY_PORT','DD_BOT_TOKEN','DD_BOT_SECRET','Q_SKEY','QQ_MODE','QYWX_AM','PUSH_PLUS_TOKEN','PUSH_PLUS_USER']
+        l=['BARK','SCKEY','TG_BOT_TOKEN','TG_USER_ID','TG_API_HOST','TG_PROXY_HOST','TG_PROXY_PORT','DD_BOT_TOKEN','DD_BOT_SECRET','Q_SKEY','QQ_MODE','QYWX_AM','PUSH_PLUS_TOKEN','PUSH_PLUS_USER','FSKEY','GOBOT_URL','GOBOT_QQ','GOBOT_TOKEN']
         d={}
         for a in l:
             try:
@@ -142,13 +144,12 @@ class Msg(object):
         try:
             initialize(d)
         except:
-            self.getsendNotify()
-            if f < 5:
+            if f < 2:
                 f += 1
+                self.getsendNotify()
                 return self.main(f)
-            else:
-                print('获取通知服务失败，请检查网络连接...')
-Msg().main()   # 初始化通知服务 
+Msg().main()   # 初始化通知服务  
+
 
 def log():
     log_str=string.ascii_lowercase+string.digits
