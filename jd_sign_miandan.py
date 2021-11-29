@@ -39,31 +39,33 @@ def get_pin(cookie):
 def gettimestamp():
     return str(int(time.time() * 1000))
 
-## 获取通知服务
 class Msg(object):
-    def getsendNotify(self, a=1):
-        try:
-            url = 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/wuye999/myScripts/main/sendNotify.py'
-            response = requests.get(url,timeout=3)
-            with open('sendNotify.py', "w+", encoding="utf-8") as f:
-                f.write(response.text)
-            return
-        except:
-            pass
-        if a < 5:
-            a += 1
-            return self.getsendNotify(a)
-
-    def main(self,f=1):
+    def getsendNotify(self):
+        url_list = [
+            'https://mirror.ghproxy.com/https://raw.githubusercontent.com/wuye999/myScripts/main/sendNotify.py',
+            'https://cdn.jsdelivr.net/gh/wuye999/myScripts@main/sendNotify.py',
+            'https://raw.githubusercontent.com/wuye999/myScripts/main/sendNotify.py',
+        ]
+        for e,url in enumerate(url_list):
+            try:
+                response = requests.get(url,timeout=10)
+                with open('sendNotify.py', "w+", encoding="utf-8") as f:
+                    f.write(response.text)
+                return
+            except:
+                if e >= (len(url_list)-1):
+                    print('获取通知服务失败，请检查网络连接...')
+                    
+    def main(self,f=0):
         global send,msg,initialize
         sys.path.append(os.path.abspath('.'))
-        for n in range(3):
+        for _ in range(3):
             try:
                 from sendNotify import send,msg,initialize
                 break
             except:
                 self.getsendNotify()
-        l=['BARK','SCKEY','TG_BOT_TOKEN','TG_USER_ID','TG_API_HOST','TG_PROXY_HOST','TG_PROXY_PORT','DD_BOT_TOKEN','DD_BOT_SECRET','Q_SKEY','QQ_MODE','QYWX_AM','PUSH_PLUS_TOKEN','PUSH_PLUS_USER']
+        l=['BARK','SCKEY','TG_BOT_TOKEN','TG_USER_ID','TG_API_HOST','TG_PROXY_HOST','TG_PROXY_PORT','DD_BOT_TOKEN','DD_BOT_SECRET','Q_SKEY','QQ_MODE','QYWX_AM','PUSH_PLUS_TOKEN','PUSH_PLUS_USER','FSKEY','GOBOT_URL','GOBOT_QQ','GOBOT_TOKEN']
         d={}
         for a in l:
             try:
@@ -73,13 +75,11 @@ class Msg(object):
         try:
             initialize(d)
         except:
-            self.getsendNotify()
-            if f < 5:
+            if f < 2:
                 f += 1
+                self.getsendNotify()
                 return self.main(f)
-            else:
-                print('获取通知服务失败，请检查网络连接...')
-Msg().main()   # 初始化通知服务 
+Msg().main()   # 初始化通知服务     
 
 ## 获取cooie
 class Judge_env(object):
@@ -219,4 +219,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
