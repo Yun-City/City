@@ -7,17 +7,17 @@
 =================================Quantumultx=========================
 [task_local]
 #5G超级盲盒
-0 0,1-23/3 * * * https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_mohe.js, tag=5G超级盲盒, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+0 0,1-23/3 * * * https://raw.githubusercontent.com/222222/sync/jd_scripts/jd_mohe.js, tag=5G超级盲盒, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 
 =================================Loon===================================
 [Script]
-cron "0 0,1-23/3 * * *" script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_mohe.js,tag=5G超级盲盒
+cron "0 0,1-23/3 * * *" script-path=https://raw.githubusercontent.com/222222/sync/jd_scripts/jd_mohe.js,tag=5G超级盲盒
 
 ===================================Surge================================
-5G超级盲盒 = type=cron,cronexp="0 0,1-23/3 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_mohe.js
+5G超级盲盒 = type=cron,cronexp="0 0,1-23/3 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/222222/sync/jd_scripts/jd_mohe.js
 
 ====================================小火箭=============================
-5G超级盲盒 = type=cron,script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_mohe.js, cronexpr="0 0,1-23/3 * * *", timeout=3600, enable=true
+5G超级盲盒 = type=cron,script-path=https://raw.githubusercontent.com/222222/sync/jd_scripts/jd_mohe.js, cronexpr="0 0,1-23/3 * * *", timeout=3600, enable=true
  */
 const $ = new Env('5G超级盲盒');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -75,6 +75,7 @@ $.shareId = [];
       await Promise.all([
         task0()
       ])
+      $.taskList_limit = 0
       await taskList();
       await getAward();//抽奖
     }
@@ -83,7 +84,7 @@ $.shareId = [];
     if ($.isNode()) await notify.sendNotify($.name, allMessage);
     $.msg($.name, '', allMessage, {"open-url": "https://blindbox5g.jd.com"})
   }
-  $.shareId = [...($.shareId || []), ...($.updatePkActivityIdRes || []), ...($.zero205Code || [])];
+  $.shareId = [...($.shareId || []), ...($.updatePkActivityIdRes || []), ...($.CityCode || [])];
   for (let v = 0; v < cookiesArr.length; v++) {
     cookie = cookiesArr[v];
     $.index = v + 1;
@@ -94,6 +95,9 @@ $.shareId = [];
       const res = await addShare(item);
       if (res && res['code'] === 2005) {
         console.log(`次数已用完，跳出助力`)
+        break
+      } else if (res && res['code'] === 1002) {
+        console.log(`账号火爆，跳出助力`)
         break
       }
     }
@@ -219,6 +223,7 @@ function getCoin() {
 }
 
 async function taskList() {
+  $.taskList_limit++
   return new Promise(async (resolve) => {
     const body = {"apiMapping":"/active/taskList"}
     $.post(taskurl(body), async (err, resp, data) => {
@@ -256,8 +261,12 @@ async function taskList() {
             console.log('\n\n----taskList的任务全部做完了---\n\n')
             console.log(`分享好友助力 ${task5.finishNum}/${task5.totalNum}\n\n`)
           } else {
-            console.log(`请继续等待,正在做任务,不要退出哦`)
-            await taskList();
+            if ($.taskList_limit >= 15){
+              console.log('触发死循环保护,结束')
+            } else {
+              console.log(`请继续等待,正在做任务,不要退出哦`)
+              await taskList();
+            }
           }
         }
       } catch (e) {
@@ -457,7 +466,7 @@ function getShareCode() {
       try {
         if (err) {
         } else {
-          $.zero205Code = JSON.parse(data) || []
+          $.CityCode = JSON.parse(data) || []
         }
       } catch (e) {
         $.logErr(e, resp)
