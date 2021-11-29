@@ -1,6 +1,6 @@
 ## Version: v2.8.0
 ## Date: 2021-06-20
-## Mod: Build20211129-001
+## Mod: Build20211130-001
 ## Update Content: 可持续发展纲要\n1. session管理破坏性修改\n2. 配置管理可编辑config下文件\n3. 自定义脚本改为查看脚本\n4. 移除互助相关
 
 ## 上面版本号中，如果第2位数字有变化，那么代表增加了新的参数，如果只有第3位数字有变化，仅代表更新了注释，没有增加新的参数，可更新可不更新
@@ -125,77 +125,31 @@ export GOBOT_URL=""
 export GOBOT_TOKEN=""
 export GOBOT_QQ=""
 
-## 10. 临时屏蔽某个Cookie
-## 10.1 按 Cookie 序号屏蔽
-## 如果某些 Cookie 已经失效了，但暂时还没法更新，可以使用此功能在不删除该Cookie和重新修改Cookie编号的前提下，临时屏蔽掉某些编号的Cookie
-## 多个Cookie编号以半角的空格分隔，两侧一对半角双引号，使用此功能后，在运行js脚本时账户编号将发生变化
-## 举例1：TempBlockCookie="2"    临时屏蔽掉 Cookie2
-## 举例2：TempBlockCookie="2 4"  临时屏蔽掉 Cookie2 和 Cookie4
+## 10 临时禁止Cookie
+### 分为 按 Cookie 序号、按 pt_pin(用户名) 2 种模式禁止将 Cookie 提交活动脚本：
+### 其他说明：①全局模式和局部模式可同时生效；
+###           ②支持黑名单模式(即不使用该模式，详见 局部模式环境变量 recombin_ck_envs 说明)；
 
-## 如果只是想要屏蔽某个 Cookie 不参加某些活动，可以参考下面 case 这个命令的例子来控制
-## case $1 in
-##     *jd_fruit*)                            # 东东农场活动脚本关键词
-##         TempBlockCookie="5"                # Cookie5 不玩东东农场
-##         ;;
-##     *jd_dreamFactory* | *jd_jdfactory*)    # 京喜工厂和东东工厂的活动脚本关键词
-##         TempBlockCookie="2"                # Cookie2 不玩京喜工厂和东东工厂
-##         ;;
-##     *jd_jdzz* | *jd_joy*)                  # 京喜赚赚和宠汪汪的活动脚本关键词
-##         TempBlockCookie="3 7_8 9-10 12~13" # Cookie3 、Cookie7至8、Cookie9至10、Cookie12至13 不玩京东赚赚和宠汪汪
-##         ;;
-##     *)                                     # 必选项。其他活动
-##         TempBlockCookie=""                 # 必选项。默认为空值，表示其他帐号参加全部活动。填写帐号序号表示指定的 Cookie 只能参加之前 case 选项的活动
-##         ;;
-## esac
-case $1 in
-    *jd_fruit*)
-        TempBlockCookie=""
-        ;;
-    *jd_dreamFactory* | *jd_jdfactory*)
-        TempBlockCookie=""
-        ;;
-    *jd_jdzz* | *jd_joy*)
-        TempBlockCookie=""
-        ;;
-    *)
-        TempBlockCookie=""
-        ;;
-esac
+## 10.1 全局模式选项
+### 赋值要求：①TempBlockCookie 只能填数字或者区间，表示按 Cookie 序号禁止账号；
+###           ②TempBlockPin 只能填写 pt_pin 值 或者 用户名(支持中文)，表示按 pt_pin 或者 用户名(支持中文) 禁止账号。
+###           ③对全部脚本有效(除非 recombin_ck_envs 另有设定)；
+###           ⑧例如：TempBlockCookie="1,2,5_8,12~19 20"，表示第 1、2、5至8、12至19、20位账号均被禁止参加活动。数字与数字，数字与区间之间可用 ~、_、空格隔开； ；
+###           ⑧例如：TempBlockPin="张三 jd_13134567890 %E7%95%AA%E8%8C%84%E5%8A%A0%E4%B8%AA%E8%9B%8B"，表示 张三、jd_13134567890、番茄加个蛋、这几个账号均被禁止参加活动。各账号间可用 ~、_、空格隔开；
+TempBlockCookie=""
+TempBlockPin=""
 
-## 10.2 按用户名(pt_pin)屏蔽
-## 如果某些 Cookie 已经失效了，但暂时还没法更新，可以使用此功能在不删除该Cookie和重新修改Cookie编号的前提下，临时屏蔽掉某些编号的Cookie
-## 举例1：TempBlockPin="张三"                    临时屏蔽掉用户名(pt_pin)为 "张三" 的 Cookie
-## 举例2：TempBlockCookie="张三 jd_13134567890"  临时屏蔽掉用户名(pt_pin)为 "张三" 和 "jd_13134567890" 的 Cookie
-
-## 如果只是想要屏蔽某个 Cookie 不参加某些活动，可以参考下面 case 这个命令的例子来控制
-## case $1 in
-##     *jd_fruit*)                               # 东东农场活动脚本关键词
-##         TempBlockPin="张三"                   # 用户名(pt_pin)为 "张三" 的 Cookie 不玩东东农场
-##         ;;
-##     *jd_dreamFactory* | *jd_jdfactory*)       # 京喜工厂和东东工厂的活动脚本关键词
-##         TempBlockPin="张三 jd_13134567890"    # 用户名(pt_pin)为 "张三" 和 "jd_13134567890" 的 Cookie 不玩京喜工厂和东东工厂
-##         ;;
-##     *jd_jdzz* | *jd_joy*)                     # 京喜赚赚和宠汪汪的活动脚本关键词
-##         TempBlockPin="张三 67890 jd"          # 用户名(pt_pin)包含 "张三" 、"67890"、"jd" 的 Cookie 不玩京东赚赚和宠汪汪
-##         ;;
-##     *)                                        # 必选项。其他活动
-##         TempBlockPin=""                       # 必选项。默认为空值，表示其他帐号参加全部活动。填写帐号序号表示指定的用户名(pt_pin)只能参加之前 case 选项的活动
-##         ;;
-## esac
-case $1 in
-    *jd_fruit*)
-        TempBlockPin=""
-        ;;
-    *jd_dreamFactory* | *jd_jdfactory*)
-        TempBlockPin=""
-        ;;
-    *jd_jdzz* | *jd_joy*)
-        TempBlockPin=""
-        ;;
-    *)
-        TempBlockPin=""
-        ;;
-esac
+## 10.2 局部模式环境变量
+### 释义：脚本1文件名关键词@参数1@参数2；
+### 赋值要求：①脚本文件名关键词，例如，东东农场的活动脚本关键词 jd_fruit；
+###           ②脚本文件名关键词与各参数采用 @ 连接。释义附后。如果不设定参数1，表示该脚本全部账号参加活动(即：黑名单)；
+###           ③参数1。填 1 表示按序号禁止账号；填 2 表示按 pt_pin 或 用户名 禁止账号；
+###           ④参数2。当参数1 为 1 时，表示 TempBlockCookie；当参数1 为 2 时，表示 TempBlockPin
+###           ⑤各个活动设定值之间采用 & 连接，例如：jd_fruit@1@1,3-4,7~9&jd_pigPet@2@张三&jd_plantBean；
+###                                                 jd_fruit@1@1,3-5,7~9   使用模式：按序号，1、3至5、7至9不参加活动
+###                                                 jd_pigPet@2@张三       使用模式：按pt_pin或用户名，张三不参加活动
+###                                                 jd_plantBean           使用模式：全部账号参加活动
+# tempblock_ck_envs="jd_fruit@1@1,3-4,7~9&jd_pigPet@2@张三&jd_plantBean"
 
 ## 11 重组Cookie
 ### 分为 随机、优先、轮换、组队和分段 5 种模式：

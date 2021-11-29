@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211129-002
+# Build 20211130-001
 
 name_js=(
   jd_fruit
@@ -100,57 +100,75 @@ var_name=(
 
 local_scr=$1
 
-## 临时屏蔽某账号运行活动脚本(账号序号匹配)
-TempBlock_JD_COOKIE(){
-    source $file_env
-    local envs=$(eval echo "\$JD_COOKIE")
-    local TempBlockCookieInterval="$(echo $TempBlockCookie | perl -pe "{s|~|-|; s|_|-|}" | sed 's/\(\d\+\)-\(\d\+\)/{\1..\2}/g')"
-    local TempBlockCookieArray=($(eval echo $TempBlockCookieInterval))
-    local envs=$(eval echo "\$JD_COOKIE")
-    local array=($(echo $envs | sed 's/&/ /g'))
-    local user_sum=${#array[*]}
-    local m n t
-    for ((m = 1; m <= $user_sum; m++)); do
-        n=$((m - 1))
-        for ((t = 0; t < ${#TempBlockCookieArray[*]}; t++)); do
-            [[ "${TempBlockCookieArray[t]}" = "$m" ]] && unset array[n]
+## 临时禁止账号运行活动脚本
+TempBlock_CK(){
+    ## 按 Cookie 序号禁止账号
+    TempBlock_JD_COOKIE(){
+	    local TempBlockCookie="$(eval echo $(echo $TempBlockCookie | perl -pe "{s|~\|-|_|g; s|\W+\|[A-Za-z]+| |g; s|(\d+)_(\d+)|{\1..\2}|g;}"))"
+	    local TempBlockPin="$(echo $TempBlockPin | perl -pe "{s|~\|-\|_\|,| |g;}")"
+        local TempBlockCookieArray=($TempBlockCookie)
+        local TempBlockPinArray=($TempBlockPin)
+        local i j k jdCookie_3
+        for ((i = 1; i <= $user_sum; i++)); do
+            j=$((i - 1))
+            for ((k = 0; k < ${#TempBlockCookieArray[*]}; k++)); do
+                [[ "${TempBlockCookieArray[k]}" = "$i" ]] && unset array[j]
+            done
+            pt_pin_temp=$(echo ${array[i]} | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|; s|%|\\\x|g}")
+            [[ $pt_pin_temp == *\\x* ]] && pt_pin[i]=$(printf $pt_pin_temp) || pt_pin[i]=$pt_pin_temp
+            for ((m = 0; m < ${#TempBlockPinArray[*]}; m++)); do
+                pt_pin_temp_block=$(echo ${TempBlockPinArray[m]} | perl -pe "{s|%|\\\x|g}")
+                [[ $pt_pin_temp_block == *\\x* ]] && pt_pin_block[m]=$(printf $pt_pin_temp_block) || pt_pin_block[m]=$pt_pin_temp_block
+                [[ "${pt_pin[i]}" =~ "${pt_pin_block[m]}" ]] && unset array[i]
+            done
         done
-    done
-    jdCookie_1=$(echo ${array[*]} | sed 's/\ /\&/g')
-    [[ $jdCookie_1 ]] && export JD_COOKIE="$jdCookie_1"
-    temp_user_sum=${#array[*]}
-}
+        jdCookie_1=$(echo ${array[*]} | sed 's/\ /\&/g')
+        [[ $jdCookie_1 ]] && export JD_COOKIE="$jdCookie_1"
+        user_sum_1=${#array[*]}
+    }
 
-## 临时屏蔽某账号运行活动脚本(pt_pin匹配)
-TempBlock_JD_PT_PIN(){
-    local tmp_jdCookie i m n t pt_pin_temp pt_pin_temp_block
-    if [[ $jdCookie_1 ]]; then
-        tmp_jdCookie=$jdCookie_1
-    else
-        source $file_env
-        tmp_jdCookie=$JD_COOKIE
-    fi
-    local TempBlockPinArray=($TempBlockPin)
+    local tmp_jdCookie i j k m
+
+    ## 导入基础 JD_COOKIE 变量
+    source $file_env
+    tmp_jdCookie=$JD_COOKIE
     local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
-    for i in "${!array[@]}"; do
-        pt_pin_temp=$(echo ${array[i]} | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|; s|%|\\\x|g}")
-        [[ $pt_pin_temp == *\\x* ]] && pt_pin[i]=$(printf $pt_pin_temp) || pt_pin[i]=$pt_pin_temp
-        for n in "${!TempBlockPinArray[@]}"; do
-            pt_pin_temp_block=$(echo ${TempBlockPinArray[n]} | perl -pe "{s|%|\\\x|g}")
-            [[ $pt_pin_temp_block == *\\x* ]] && pt_pin_block[n]=$(printf $pt_pin_temp_block) || pt_pin_block[n]=$pt_pin_temp_block
-            [[ "${pt_pin[i]}" =~ "${pt_pin_block[n]}" ]] && unset array[i]
+    local user_sum=${#array[*]}
+    if [ $tempblock_ck_envs ]; then
+        local tempblock_ck_array=($(echo $tempblock_ck_envs | sed 's/&/ /g'))
+        for i in "${!tempblock_ck_array[@]}"; do
+            local tmp_array=($(echo ${tempblock_ck_array[i]}|awk -F "@" '{for(i=1;i<=NF;i++){print $i;}}'))
+            for ((j = 0; j < 3; j++)); do
+                k=$((j + 1))
+                eval local tmp_num_$k="${tmp_array[j]}"
+            done
+            if [[ $local_scr =~ $tmp_num_1 ]]; then
+                TempBlock_CK_Mode="$tmp_num_2"
+                TempBlock_CK_ARG1="$tmp_num_3"
+    
+                if [ $TempBlock_CK_Mode = 1 ]; then
+                    [[ $(echo $TempBlock_CK_ARG1 | perl -pe "{s|\D||g;}") ]] && TempBlockCookie=$TempBlock_CK_ARG1 || TempBlockCookie=""
+                    TempBlockPin=""
+                    TempBlock_JD_COOKIE
+                elif [ $TempBlock_CK_Mode = 2 ]; then
+                    TempBlockPin=$TempBlock_CK_ARG1
+                    TempBlockCookie=""
+                    TempBlock_JD_COOKIE
+                else
+                    export JD_COOKIE="$tmp_jdCookie"
+                fi
+            fi
         done
-    done
-    jdCookie_2=$(echo ${array[*]} | sed 's/\ /\&/g')
-    [[ $jdCookie_2 ]] && export JD_COOKIE="$jdCookie_2"
-    temp_user_sum=${#array[*]}
+    else
+        TempBlock_JD_COOKIE
+    fi
 }
 
 # Cookie 有效性检查
 check_jd_ck(){
-    test_connect="$(curl -I -s https://bean.m.jd.com/bean/signIndex.action -w %{http_code} | tail -n1)"
-    test_jd_cookie="$(curl -s --noproxy "*" "https://bean.m.jd.com/bean/signIndex.action" -H "cookie: $1")"
+    test_connect="$(curl -I -s --connect-time 3 --max-time 2 --retry 3 --noproxy https://bean.m.jd.com/bean/signIndex.action -w %{http_code} | tail -n1)"
+    test_jd_cookie="$(curl -s --connect-time 3 --max-time 2 --retry 3 --noproxy "*" "https://bean.m.jd.com/bean/signIndex.action" -H "cookie: $1")"
     if [ "$test_connect" -eq "302" ]; then
         [[ "$test_jd_cookie" ]] && return 0 || return 1
     else
@@ -160,9 +178,7 @@ check_jd_ck(){
 
 remove_void_ck(){
     local tmp_jdCookie i j void_ck_num
-    if [[ $jdCookie_2 ]]; then
-        tmp_jdCookie=$jdCookie_2
-    elif [[ $jdCookie_1 ]]; then
+    if [[ $jdCookie_1 ]]; then
         tmp_jdCookie=$jdCookie_1
     else
         source $file_env
@@ -181,7 +197,8 @@ remove_void_ck(){
         check_jd_ck ${array[i]}
         [[ $? = 1 ]] && echo -e "\n# 账号$j. ${pt_pin[i]} 已失效" && unset array[i]
     done
-    jdCookie_3=$(echo ${array[*]} | sed 's/\ /\&/g')
+    jdCookie_2=$(echo ${array[*]} | sed 's/\ /\&/g')
+    [[ $jdCookie_2 ]] && export JD_COOKIE="$jdCookie_2"
     void_ck_num=$((user_sum - ${#array[*]}))
     [[ $void_ck_num = 0 ]] && echo "未检查到失效 Cookie 。" || echo -e "# 已剔除以上 $void_ck_num 个失效的 Cookie 。"
     echo -e "# 开始启动任务 ... "
@@ -400,9 +417,7 @@ Recombin_CK(){
     fi
 
     ## 导入基础 JD_COOKIE 变量
-    if [[ $jdCookie_3 ]]; then
-        tmp_jdCookie=$jdCookie_3
-    elif [[ $jdCookie_2 ]]; then
+    if [[ $jdCookie_2 ]]; then
         tmp_jdCookie=$jdCookie_2
     elif [[ $jdCookie_1 ]]; then
         tmp_jdCookie=$jdCookie_1
@@ -503,7 +518,7 @@ combine_only() {
     done
 }
 
-TempBlock_JD_COOKIE && TempBlock_JD_PT_PIN && Recombin_CK
+TempBlock_CK && Recombin_CK
 
 combine_only
 
