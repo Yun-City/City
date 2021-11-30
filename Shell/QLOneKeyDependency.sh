@@ -80,6 +80,8 @@ npm install -g fs
 
 npm install -g ws
 
+npm install moment
+
 npm install -g form-data
 
 pnpm install -g js-base64
