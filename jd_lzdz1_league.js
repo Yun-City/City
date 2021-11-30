@@ -30,7 +30,7 @@ if ($.isNode()) {
         return;
     }
     
-    authorCodeList = await getAuthorCodeList('https://gitee.com/fatelight/code/raw/master/lzdz1_league.json')
+    authorCodeList = await getAuthorCodeList('https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/lzdz1_league.json')
     if($.getAuthorCodeListerr === false){
         authorCodeList = []
     }
