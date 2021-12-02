@@ -1,6 +1,6 @@
 ## Version: v2.8.0
 ## Date: 2021-06-20
-## Mod: Build20211130-004
+## Mod: Build 20211202-001
 ## Update Content: 可持续发展纲要\n1. session管理破坏性修改\n2. 配置管理可编辑config下文件\n3. 自定义脚本改为查看脚本\n4. 移除互助相关
 
 ## 上面版本号中，如果第2位数字有变化，那么代表增加了新的参数，如果只有第3位数字有变化，仅代表更新了注释，没有增加新的参数，可更新可不更新
@@ -141,15 +141,15 @@ TempBlockPin=""
 
 ## 10.2 局部模式环境变量
 ### 释义：脚本1文件名关键词@参数1@参数2；
-### 赋值要求：①脚本文件名关键词，例如，东东农场的活动脚本关键词 jd_fruit；
+### 赋值要求：①脚本文件名关键词，例如，东东农场的活动脚本关键词 jd_fruit；多个脚本关键词采用 | 符号分隔。例如：jd_fruit|jd_dreamFactory；
 ###           ②脚本文件名关键词与各参数采用 @ 连接。释义附后。如果不设定参数1，表示该脚本全部账号参加活动(即：黑名单)；
 ###           ③参数1。表示 TempBlockCookie。不能有空格，建议序号与序号、序号与区间采用 , 分隔；
 ###           ④参数2。表示 TempBlockPin。不能有空格，建议各pt_pin(或用户名)采用 , 分隔；
-###           ⑤各个活动设定值之间采用 & 连接，例如：jd_fruit@1,3-4,7~9&jd_plantBean@2,4-6,8@张三&jd_pigPet@-@张三&jd_plantBean；
-###                                                 jd_fruit@1,3-5,7~9          使用模式：按序号，1、3至5、7至9不参加活动
-###                                                 jd_plantBean@2,4-6,8@张三   使用模式：按序号，2、4至6、8不参加活动，且张三也不参加活动
-###                                                 jd_pigPet@-@张三            使用模式：按pt_pin或用户名，张三不参加活动。注意，参数1位置需要加一个 - 作为占位符
-###                                                 jd_plantBean                使用模式：全部账号参加活动
+###           ⑤各个活动设定值之间采用 & 连接，例如：jd_fruit|jd_dreamFactory@1,3-4,7~9&jd_plantBean@2,4-6,8@张三&jd_pigPet@-@张三&jd_plantBean；
+###                                                 jd_fruit|jd_dreamFactory@1,3-5,7~9   使用模式：按序号，1、3至5、7至9不参加活动
+###                                                 jd_plantBean@2,4-6,8@张三            使用模式：按序号，2、4至6、8不参加活动，且张三也不参加活动
+###                                                 jd_pigPet@-@张三                     使用模式：按pt_pin或用户名，张三不参加活动。注意，参数1位置需要加一个 - 作为占位符
+###                                                 jd_plantBean                         使用模式：全部账号参加活动
 # tempblock_ck_envs="jd_fruit@1,3-4,7~9&jd_plantBean@2,4-6,8@张三&jd_pigPet@-@张三&jd_plantBean"
 
 ## 11 重组Cookie
@@ -197,25 +197,27 @@ Recombin_CK_ARG2=""
 Remove_Void_CK=""
 
 ## 11.2 局部模式环境变量
-### 释义：脚本1文件名关键词@参数1@参数2@参数3@参数4@参数5；
-### 赋值要求：①脚本文件名关键词，例如，东东农场的活动脚本关键词 jd_fruit；
+### 释义：脚本1文件名关键词@模式@参数1@参数2@参数3@参数4；
+### 赋值要求：①脚本文件名关键词，例如，东东农场的活动脚本关键词 jd_fruit。多个脚本关键词采用 | 符号分隔。例如：jd_fruit|jd_dreamFactory；
 ###           ②脚本文件名关键词与各参数采用 @ 连接。释义附后。如果不设定参数1，表示该脚本按正常账号顺序参加活动(即：黑名单)；
-###           ③参数1。表示 Recombin_CK_Mode；
-###           ④参数2。表示 Recombin_CK_ARG1；
-###           ⑤参数3。表示 Recombin_CK_ARG2；
-###           ⑥参数4。只对 组队瓜分京豆脚本 (jd_zdjr) 有效。表示 activityId；
-###           ⑦参数5。只对 组队瓜分京豆脚本 (jd_zdjr) 有效。表示 activityUrl；
-###           ⑧各个活动设定值之间采用 & 连接，例如：jd_cfd&jd_fruit@1@5&jd_pet@2@6&jd_pigPet@3@5&jd_plantBean@3@7@4&jd_jxlhb@4@80@1&jd_islogin_xh@5@4@8&jd_islogin_xh@5@4@8@15&ccwav*speed_sign@5@0@20@-@5400&jd_zdjr@4@5@3@4240059acf5c449a1a986fa6107897ce1@https://cjhydz-isv.isvjcloud.com；
+###           ③模式。表示 Recombin_CK_Mode；
+###           ④参数1。表示 Recombin_CK_ARG1；
+###           ⑤参数2。表示 Recombin_CK_ARG2；
+###           ⑥参数3。表示 Recombin_CK_ARG3。组队模式、分段模式：表示各分段启动活动脚本的延隔时间，支持 d(天)、h(小时)、m（分钟）、s(秒可略写)。如 1d2h3m4s 表示 1天2小时3分钟4秒；
+###           ⑦参数4。表示 Recombin_CK_ARG4。组队模式、分段模式：表示各分段启动活动脚本的间隔时间。需参数3为 - 占位符时生效；
+###           ⑧参数5。表示 Recombin_CK_ARG5。组队瓜分京豆脚本 (jd_zdjr) ：表示 activityId。需参数3、参数4已赋值或为 - 占位符时生效；
+###           ⑨参数6。表示 Recombin_CK_ARG6。组队瓜分京豆脚本 (jd_zdjr) ：表示 activityUrl。需参数3、参数4已赋值或为 - 占位符且参数5已赋值时生效；
+###           ⑩各个活动设定值之间采用 & 连接，例如：jd_cfd&jd_fruit|jd_dreamFactory@1@5&jd_pet@2@6&jd_pigPet@3@5&jd_plantBean@3@7@4&jd_jxlhb@4@80@1&jd_islogin_xh@5@4@8&jd_islogin_xh@5@4@8@15&ccwav*speed_sign@5@0@20@-@5400&jd_zdjr@4@5@3@0@-@4240059acf5c449a1a986fa6107897ce1@https://cjhydz-isv.isvjcloud.com；
 ###                                              jd_cfd                           脚本按正常账号顺序参加活动
-###                                              jd_fruit@1@5                     使用模式：1随机，抽5个CK顺序随机
+###                                              jd_fruit|jd_dreamFactory@1@5     共用模式：1随机，抽5个CK顺序随机
 ###                                              jd_pet@2@6                       使用模式：2优先，前6个CK顺序优先，其余CK顺序随机
 ###                                              jd_pigPet@3@5                    使用模式：3轮换，前5个CK顺序固定，根据CK总数和当月天数自动计算每天轮换CK数量
 ###                                              jd_plantBean@3@7@4               使用模式：3轮换，前7个CK顺序固定，每天轮换4个CK
 ###                                              jd_jxlhb@4@80@1                  使用模式：4组队，队伍成员数量80，每个账号组队1次
 ###                                              jd_islogin_xh@5@4@8              使用模式：5分段，前4个CK顺序固定，每段成员数量8，各分段并发执行启动脚本
-###                                              jd_islogin_xh@5@4@8@15           使用模式：5分段，前4个CK顺序固定，每段成员数量8，每段启动脚本的延隔时间为15秒。第 4 个参数表示每个分段启动活动脚本的延隔时间，单位：秒；
-###                                              ccwav*speed_sign@5@0@20@-@5400   ccwav 的 speed_sign 脚本。使用模式：5分段，全部账号参与分段，每段成员数量20，每段启动脚本的间隔时间为 5400 秒。当第 4 个参数使用 - 占位符时，第 5 个参数表示每个分段启动活动脚本的间隔时间，单位：秒。
-# recombin_ck_envs="jd_fruit@3@5&jd_pet@3@5&jd_plantBean@3@5&jd_dreamFactory@3@5&jd_jdfactory@3@5&jd_crazy_joy@3@5&jd_jdzz@3@5&jd_jxnc@3@5&jd_bookshop@3@5&jd_cash@3@5&jd_sgmh@3@5&jd_cfd@3@5&jd_health@3@5&jd_carnivalcity@3@5&jd_city@3@5&jd_moneyTree_heip@3@5&jd_jxlhb@3@5&jd_88hb@3@5&Check&jd_islogin_xh&bean_change&wskey&code&ccwav*speed_sign@5@0@20@-@5400"
+###                                              jd_islogin_xh@5@4@8@15           使用模式：5分段，前4个CK顺序固定，每段成员数量8，每段启动脚本的延隔时间为15秒，即本段开始启动脚本后 15 秒，下一段启动脚本。第 4 个参数表示每个分段启动活动脚本的延隔时间，单位：秒；
+###                                              ccwav*speed_sign@5@0@20@-@5400   ccwav 的 speed_sign 脚本。使用模式：5分段，全部账号参与分段，每段成员数量20，每段启动脚本的间隔时间为 5400 秒即本段脚本执行完成后，等待 5400 秒，下一段启动脚本。当第 4 个参数使用 - 占位符时，第 5 个参数表示每个分段启动活动脚本的间隔时间，单位：秒。
+# recombin_ck_envs="jd_fruit|jd_pet|jd_plantBean|jd_dreamFactory|jd_jdfactory|jd_crazy_joy|jd_jdzz|jd_jxnc|jd_bookshop|jd_cash|jd_sgmh|jd_cfd|jd_health|jd_carnivalcity|jd_city|jd_moneyTree_heip@3@5&jd_jxlhb|jd_88hb@4@5@80@1&Check&jd_islogin_xh&bean_change&wskey&code&ccwav*speed_sign@5@0@20@-@1h"
 
 ## 其他需要的变量，脚本中需要的变量使用 export 变量名= 声明即可
 

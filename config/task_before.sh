@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211130-005
+# Build 20211202-002
 
 name_js=(
   jd_fruit
@@ -100,13 +100,78 @@ var_name=(
 
 local_scr=$1
 
+## 生成pt_pin清单
+gen_pt_pin_array() {
+    source $file_env
+    ori_jdCookie=$JD_COOKIE
+    ori_envs=$(eval echo "\$ori_jdCookie")
+    ori_array=($(echo $ori_envs | sed 's/&/ /g'))
+    local i j ori_pt_pin_temp
+    for i in "${!ori_array[@]}"; do
+        j=$((i + 1))
+        ori_pt_pin_temp=$(echo ${ori_array[i]} | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|; s|%|\\\x|g}")
+        ori_remark_name[i]="$(cat $dir_db/env.db | grep ${ori_array[i]} | grep remarks | perl -pe "{s|.*remarks\":\"([^\"]+).*|\1|g}" | tail -1)"
+        [[ ! ${ori_remark_name[i]} ]] && ori_remark_name[i]="未备注"
+        [[ $ori_pt_pin_temp == *\\x* ]] && ori_pt_pin[i]=$(printf $ori_pt_pin_temp) || ori_pt_pin[i]=$ori_pt_pin_temp
+        ori_sn=$j
+        ori_uesr_info[i]="序号 $j. 用户名：${ori_pt_pin[i]} 备注：${ori_remark_name[i]}"
+    done
+}
+
+export_uesr_info(){
+for i in $@; do
+    for j in "${!ori_array[@]}"; do
+        [[ ${ori_array[j]} == *$i* ]] && echo ${ori_uesr_info[j]}
+    done
+done
+}
+
+# Cookie 有效性检查
+check_jd_ck(){
+    local test_connect="$(curl -I -s --connect-timeout 5 --retry 3 --noproxy "*" https://bean.m.jd.com/bean/signIndex.action -w %{http_code} | tail -n1)"
+    local test_jd_cookie="$(curl -s --connect-timeout 5 --retry 3 --noproxy "*" "https://bean.m.jd.com/bean/signIndex.action" -H "cookie: $1")"
+    if [ "$test_connect" -eq "302" ]; then
+    [[ "$test_jd_cookie" ]] && return 0 || return 1
+    else
+        return 2
+    fi
+}
+
+# 移除失效的 Cookie
+remove_void_ck(){
+    gen_pt_pin_array
+    local tmp_jdCookie i j void_ck_num
+    if [[ $jdCookie_1 ]]; then
+        tmp_jdCookie=$jdCookie_1
+    else
+        source $file_env
+        tmp_jdCookie=$JD_COOKIE
+    fi
+    local envs=$(eval echo "\$tmp_jdCookie")
+    local array=($(echo $envs | sed 's/&/ /g'))
+    local user_sum=${#array[*]}
+    echo -e "# 开始检查 Cookie 的有效性，可能花费一定时间，请耐心等待 ..."
+    echo -e "# 本次一共导入 $user_sum 个 Cookie ，其中："
+    for ((i = 0; i < $user_sum; i++)); do
+        j=$((i + 1))
+        check_jd_ck ${array[i]}
+        [[ $? = 0 ]] && echo -e "# `export_uesr_info ${array[i]}` 状态正常"
+        [[ $? = 1 ]] && echo -e "# `export_uesr_info ${array[i]}` 已失效" && unset array[i]
+    done
+    jdCookie_2=$(echo ${array[*]} | sed 's/\ /\&/g')
+    [[ $jdCookie_2 ]] && export JD_COOKIE="$jdCookie_2"
+    void_ck_num=$((user_sum - ${#array[*]}))
+    [[ $void_ck_num = 0 ]] && echo -e "# 未检查到失效 Cookie 。" || echo -e "# 已剔除以上 $void_ck_num 个失效的 Cookie 。"
+    echo -e "# 开始启动任务 ... "
+}
+
 ## 临时禁止账号运行活动脚本
 TempBlock_CK(){
     ## 按 Cookie 序号禁止账号
     TempBlock_JD_COOKIE(){
         ## 导入基础 JD_COOKIE 变量
         source $file_env
-        tmp_jdCookie=$JD_COOKIE
+        local tmp_jdCookie=$JD_COOKIE
         local envs=$(eval echo "\$tmp_jdCookie")
         local array=($(echo $envs | sed 's/&/ /g'))
         local user_sum=${#array[*]}
@@ -133,19 +198,18 @@ TempBlock_CK(){
         user_sum_1=${#array[*]}
     }
 
-    local tmp_jdCookie i j k
+    local i j
     if [ $tempblock_ck_envs ]; then
-        local tempblock_ck_array=($(echo $tempblock_ck_envs | sed 's/&/ /g'))
-        for i in "${!tempblock_ck_array[@]}"; do
-            local tmp_array=($(echo ${tempblock_ck_array[i]}|awk -F "@" '{for(i=1;i<=NF;i++){print $i;}}'))
-            for ((j = 0; j < 3; j++)); do
-                k=$((j + 1))
-                eval local tmp_num_$k="${tmp_array[j]}"
+        local tempblock_ck_array=($(echo $tempblock_ck_envs | perl -pe "{s|&| |g}"))
+        for i in "${tempblock_ck_array[@]}"; do
+            local tmp_task_array=($(echo $i | perl -pe "{s|@| |g}"))
+            local tmp_script_array=($(echo ${tmp_task_array[0]} | perl -pe "{s/\|/ /g}"))
+            for j in ${tmp_script_array[@]}; do
+                if [[ $local_scr == *$j* ]]; then
+                    [[ $(echo ${tmp_task_array[1]} | perl -pe "{s|\D||g;}") ]] && TempBlockCookie=${tmp_task_array[1]} || TempBlockCookie=""
+                    TempBlockPin=${tmp_task_array[2]}
+                fi
             done
-            if [[ $local_scr == *$tmp_num_1* ]]; then
-                [[ $(echo $tmp_num_2 | perl -pe "{s|\D||g;}") ]] && TempBlockCookie=$tmp_num_2 || TempBlockCookie=""
-                TempBlockPin=$tmp_num_3
-            fi
         done
     fi
     if [[ $TempBlockCookie ]] || [[ $TempBlockPin ]]; then
@@ -155,71 +219,40 @@ TempBlock_CK(){
     fi
 }
 
-# Cookie 有效性检查
-check_jd_ck(){
-    local test_connect="$(curl -I -s --connect-timeout 5 --retry 3 --noproxy "*" https://bean.m.jd.com/bean/signIndex.action -w %{http_code} | tail -n1)"
-    local test_jd_cookie="$(curl -s --connect-timeout 5 --retry 3 --noproxy "*" "https://bean.m.jd.com/bean/signIndex.action" -H "cookie: $1")"
-    if [ "$test_connect" -eq "302" ]; then
-    [[ "$test_jd_cookie" ]] && return 0 || return 1
-    else
-        return 2
-    fi
-}
-
-remove_void_ck(){
-    local tmp_jdCookie i j void_ck_num
-    if [[ $jdCookie_1 ]]; then
-        tmp_jdCookie=$jdCookie_1
-    else
-        source $file_env
-        tmp_jdCookie=$JD_COOKIE
-    fi
-    local envs=$(eval echo "\$tmp_jdCookie")
-    local array=($(echo $envs | sed 's/&/ /g'))
-    local user_sum=${#array[*]}
-    echo -e "# 开始检查 Cookie 的有效性，可能花费一定时间，请耐心等待 ..."
-    echo -n "# 本次一共导入 $user_sum 个 Cookie ："
-    for ((i = 0; i < $user_sum; i++)); do
-        j=$((i + 1))
-        pt_pin_temp=$(echo ${array[i]} | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|; s|%|\\\x|g}")
-        remark_name[i]=$(cat $dir_db/env.db | grep ${array[i]} | perl -pe "{s|.*remarks\":\"([^\"]+).*|\1|g}" | tail -1)
-        [[ $pt_pin_temp == *\\x* ]] && pt_pin[i]=$(printf $pt_pin_temp) || pt_pin[i]=$pt_pin_temp
-        check_jd_ck ${array[i]}
-        [[ $? = 1 ]] && echo -e "\n# 账号$j. ${pt_pin[i]} 已失效" && unset array[i]
-    done
-    jdCookie_2=$(echo ${array[*]} | sed 's/\ /\&/g')
-    [[ $jdCookie_2 ]] && export JD_COOKIE="$jdCookie_2"
-    void_ck_num=$((user_sum - ${#array[*]}))
-    [[ $void_ck_num = 0 ]] && echo "未检查到失效 Cookie 。" || echo -e "# 已剔除以上 $void_ck_num 个失效的 Cookie 。"
-    echo -e "# 开始启动任务 ... "
-}
-
 ## 重组 CK 基础参数导入
 recombin_ck_args_set(){
-    local i j k m
+    local i j m n
     if [ $recombin_ck_envs ]; then
-        local recombin_ck_array=($(echo $recombin_ck_envs | sed 's/&/ /g'))
-        for i in "${!recombin_ck_array[@]}"; do
-            local tmp_array=($(echo ${recombin_ck_array[i]}|awk -F "@" '{for(i=1;i<=NF;i++){print $i;}}'))
-            for ((j = 0; j < 6; j++)); do
-                k=$((j + 1))
-                eval local tmp_num_$k="${tmp_array[j]}"
+        local recombin_ck_array=($(echo $recombin_ck_envs | perl -pe "{s|&| |g}"))
+        for i in "${recombin_ck_array[@]}"; do
+            local tmp_task_array=($(echo $i | perl -pe "{s|@| |g}"))
+            local tmp_script_array=($(echo ${tmp_task_array[0]} | perl -pe "{s/\|/ /g}"))
+            for j in "${tmp_script_array[@]}"; do
+                if [[ $local_scr == *$j* ]]; then
+                    Recombin_CK_Mode="${tmp_task_array[1]}"
+                    for ((m = 1; m < 6; m++)); do
+                        n=$((m + 1))
+                        eval Recombin_CK_ARG$m="${tmp_task_array[n]}"
+                    done
+                fi
             done
-            if [[ $local_scr == *$tmp_num_1* ]]; then
-                Recombin_CK_Mode="$tmp_num_2"
-                for ((m = 1; m <= 4; m++)); do
-                    n=$((m+2))
-                    eval Recombin_CK_ARG$m="\$tmp_num_$n"
-                done
-            fi
         done
+    fi
+
+    # Recombin_CK_ARG1 参数基本判断
+    if [ -n "$(echo $Recombin_CK_ARG1|sed -n "/^[0-9]\+$/p")" ]; then
+        ## 移除无效 Cookie
+        [[ $Remove_Void_CK = 1 ]] && remove_void_ck
+        [[ $user_sum -lt $Recombin_CK_ARG1 || $Recombin_CK_ARG1 -lt 0 ]] && Recombin_CK_ARG1=$user_sum
+    else
+        Recombin_CK_ARG1=""
     fi
 }
 
 Recombin_CK(){
     ## 随机模式算法
     combine_random(){
-        local combined_all ran_sub tmp i
+        local combined_all ran_sub jdCookie_4 tmp i
         if [ $1 ]; then
             echo "# 正在应用 随机Cookie 模式..."
             echo -e "# 当前总共 $user_sum 个有效账号，本次随机抽取 $1 个账号按随机顺序参加活动。"
@@ -239,7 +272,7 @@ Recombin_CK(){
 
     ## 优先模式算法
     combine_priority(){
-        local combined_all ran_sub jdCookie_priority jdCookie_random m n
+        local combined_all ran_sub jdCookie_priority jdCookie_random jdCookie_4 m n
         if [ $1 ]; then
             echo "# 正在应用 优先Cookie 模式..."
             echo -e "# 当前总共 $user_sum 个有效账号，其中前 $1 个账号为固定顺序。\n# 本次从第 $(($1 + 1)) 个账号开始按随机顺序参加活动。"
@@ -268,13 +301,13 @@ Recombin_CK(){
         # 今天几号
         local today_day=`date +%d`
         # 轮换区的账号数量
-        local rot_total_num=$((user_sum - $1))
-        local combined_all jdCookie_priority jdCookie_rot_head jdCookie_rot_mid rot_start_num a b c tmp_1 tmp_2 tmp_3
+        local combined_all rot_num rot_start_num jdCookie_priority jdCookie_rot_head jdCookie_rot_mid jdCookie_4 tmp_1 tmp_2 tmp_3 a b c
         if [[ $1 ]] && [[ $today_day -gt 1 ]]; then
             echo "# 正在应用 轮换Cookie 模式..."
+            local rot_total_num=$((user_sum - $1))
             if [[ $rot_total_num -gt 2 ]]; then
                 rot_num=$Recombin_CK_ARG2
-                [[ ! $(echo $rot_num|grep '[0-9]') || ! $rot_num || $rot_num -lt 1 || $rot_total_num -lt $rot_num ]] && rot_num=$(((rot_total_num + total_days -1)/total_days)) && [[ $rot_num -lt 1 ]] && rot_num="1"
+                [[ -n "$(echo $rot_num|sed -n "/^[0-9]\+$/p")" || ! $rot_num || $rot_num -lt 1 || $rot_total_num -lt $rot_num ]] && rot_num=$(((rot_total_num + total_days -1)/total_days)) && [[ $rot_num -lt 1 ]] && rot_num="1"
                 rot_start_num=$(($1 + rot_num * ((today_day - 1))))
                 while [[ $user_sum -lt $rot_start_num ]]; do rot_start_num=$((rot_start_num - rot_total_num)); done
                 echo -e "# 当前总共 $user_sum 个有效账号，其中前 $1 个账号为固定顺序。\n# 今天从第 $((rot_start_num + 1)) 个账号开始轮换，轮换频次为：$rot_num 个账号/天。"
@@ -297,6 +330,9 @@ Recombin_CK(){
                 echo "# 由于参加轮换的账号数量不足 2 个，切换回 正常 Cookie 模式..."
                 export JD_COOKIE="$tmp_jdCookie"
             fi
+        elif [[ $1 ]] && [[ $today_day -eq 1 ]]; then
+            echo "# 今天是 1 号，不应用轮换模式，全部 Cookie 按正常顺序参加活动..."
+            export JD_COOKIE="$tmp_jdCookie"
         else
             echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
@@ -307,14 +343,30 @@ Recombin_CK(){
     combine_team(){
         local teamer_num="$1"
         local team_num="$2"
-        local jd_zdjr_activityId="$3"
-        local jd_zdjr_activityUrl="$4"
+        local jd_zdjr_activityId="$5"
+        local jd_zdjr_activityUrl="$6"
         local combined_all jdCookie_team_part1 jdCookie_team_part2 jdCookie_4 i j k m n
-        if [[ $1 ]] && [[ $(echo $2|grep '[0-9]') ]]; then
+        if [[ $1 ]] && [[ -n "$(echo $2|sed -n "/^[0-9]\+$/p")" ]]; then
             echo "# 正在应用 组队Cookie 模式..."
             [[ $user_sum -lt $1  ]] && teamer_num=$user_sum
             [[ $team_num -ge $((user_sum/teamer_num)) ]] && team_num=$((user_sum/teamer_num)) && [[ $team_num -lt 1 ]] && team_num=1
             echo -e "# 当前总共 $user_sum 个有效账号，每支队伍包含 $1 个账号，每个账号可以发起 $2 次组队。"
+            if [[ -n "$(echo $3|perl -pe "{s|\.\|s\|m\|h\|d||g}"|sed -n "/^[0-9]\+$/p")" ]]; then
+                temp_status="1"
+                local delay_seconds="$(echo $3|perl -pe "{s|([a-z])(\d)+|\1 \2|g;}")"
+                echo -e "各支队伍启动脚本的延隔时间为`format_time $3`。"
+            elif [[ $3 = 0 ]]; then
+                temp_status="2"
+                local delay_seconds="0"
+                echo -e "所有队伍并发启动脚本，可能会占用较高的系统资源导致卡顿。"
+            elif [[ $3 = "-" ]] && [[ -n "$(echo $4|perl -pe "{s|\.\|s\|m\|h\|d||g}"|sed -n "/^[0-9]\+$/p")" ]] ; then
+                temp_status="3"
+                local interval_seconds="$(echo $4|perl -pe "{s|([a-z])(\d)|\1 \2|g;}")"
+                echo -e "各支队伍启动脚本的间隔时间为`format_time $4`。"
+            else
+                delay_seconds="0"
+                interval_seconds="0"
+            fi
             for ((i = 0; i < $user_sum; i++)); do
                 j=$((i + 1))
                 m=$((i/team_num))
@@ -344,9 +396,19 @@ Recombin_CK(){
                 jdCookie_4=$(echo -e "$jdCookie_team_part1$jdCookie_team_part2")
                 if [[ $jdCookie_4 ]]; then
                     export JD_COOKIE="$jdCookie_4"
-                    [[ $local_scr =~ ".js" ]] && node /ql/scripts/$local_scr
+                    if [[ $local_scr == *.js ]]; then
+                        if [ $temp_status = 3 ]; then
+                            node /ql/scripts/$local_scr
+                            echo -e "# 等待 $interval_seconds 秒后开始进行下一组队任务 ..."
+                            sleep $interval_seconds
+                        else
+                            node /ql/scripts/$local_scr &
+                            sleep $delay_seconds
+                        fi
+                    fi
                 fi
             done
+            exit
         else
             echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
@@ -359,25 +421,28 @@ Recombin_CK(){
         local delay_seconds="$3"
         local interval_seconds="$4"
         local jdCookie_priority jdCookie_team_part jdCookie_4 i j k m n
-        if [[ $1 ]] && [[ $(echo $2|grep '[0-9]') ]] && [[ $1 -lt $2 ]]; then
+        if [[ $1 ]] && [[ -n "$(echo $2|sed -n "/^[0-9]\+$/p")" ]] && [[ $1 -lt $2 ]]; then
             echo "# 正在应用 分段Cookie 模式..."
             [[ $user_sum -lt $segment_length ]] && segment_length=$user_sum
             local team_length="$((segment_length - $1))"
-            local team_num=$(((user_sum - $1 + team_length -1)/team_length)) && [[ $team_num -lt 1 ]] && team_num=1
+            local team_total_num=$(((user_sum - $1 + team_length -1)/team_length)) && [[ $team_total_num -lt 1 ]] && team_total_num=1
             echo -n "# 当前总共 $user_sum 个有效账号"
             [[ $1 -ne 0 ]] && echo -n "，其中前 $1 个账号为固定顺序"
-            echo -n "。每 $segment_length 个账号分一段，一共分 $team_num 段。"
-            if [[ $(echo $3|grep '[0-9]') ]] && [[ $3 -gt 0 ]]; then
+            echo -n "。每 $segment_length 个账号分一段，一共分 $team_total_num 段。"
+            if [[ -n "$(echo $3|perl -pe "{s|\.\|s\|m\|h\|d||g}"|sed -n "/^[0-9]\+$/p")" ]]; then
                 temp_status="1"
-                echo -e "各分段启动脚本的延隔时间为 $3 秒。"
+                local delay_seconds="$(echo $3|perl -pe "{s|([a-z])(\d)+|\1 \2|g;}")"
+                echo -e "各分段启动脚本的延隔时间为`format_time $3`。"
                 echo -e "# 注意：如果每段的运行时间较长且延隔时间设定较短，运行日志可能会显示混乱，此为正常现象。"
-            elif [[ $(echo $3|grep '[0-9]') ]] && [[ $3 -eq 0 ]]; then
+            elif [[ $3 = 0 ]]; then
                 temp_status="2"
+                local delay_seconds="0"
                 echo -e "所有分段并发启动脚本，可能会占用较高的系统资源导致卡顿。"
-                echo -e "# 注意：如果每段的运行时间较长且延隔时间设定较短，运行日志可能会显示混乱，此为正常现象。"
-            elif [[ $(echo $4|grep '[0-9]') ]] && [[ $4 -gt 0 ]] && [[ $3 = "-" ]]; then
+                echo -e "# 注意：运行日志会显示混乱，此为正常现象。"
+            elif [[ $3 = "-" ]] && [[ -n "$(echo $4|perl -pe "{s|\.\|s\|m\|h\|d||g}"|sed -n "/^[0-9]\+$/p")" ]] ; then
                 temp_status="3"
-                echo -e "各分段启动脚本的间隔时间为 $4 秒。"
+                local interval_seconds="$(echo $4|perl -pe "{s|([a-z])(\d)|\1 \2|g;}")"
+                echo -e "各分段启动脚本的间隔时间为`format_time $4`。"
             else
                 delay_seconds="0"
                 interval_seconds="0"
@@ -386,7 +451,7 @@ Recombin_CK(){
                 tmp="${array[m]}"
                 jdCookie_priority="$jdCookie_priority&$tmp"
             done
-            for ((i = 0; i < $team_num; i++)); do
+            for ((i = 0; i < $team_total_num; i++)); do
                 j=$((i + 1))
                 m=$((team_length * i + $1))
                 n=$((team_length * j + $1))
@@ -399,41 +464,40 @@ Recombin_CK(){
                 jdCookie_4=$(echo $jdCookie_priority$jdCookie_team_part | perl -pe "{s|^&\|&$||g;}")
                 if [[ $jdCookie_4 ]]; then
                     export JD_COOKIE="$jdCookie_4"
-                    if [[ $jdCookie_4 ]]; then
-                        if [[ $local_scr =~ ".js" ]]; then
-                            case $temp_status in
-                                3)
-                                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
-                                    node /ql/scripts/$local_scr
-                                    echo -e "# 等待 $interval_seconds 秒后开始进行下一段任务 ..."
-                                    sleep $interval_seconds
-                                    ;;
-                                *)
-                                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
-                                    node /ql/scripts/$local_scr &
-                                    sleep $delay_seconds
-                                    ;;
-                            esac
+                    if [[ $local_scr == *.js ]]; then
+                        if [ $temp_status = 3 ]; then
+                            [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "# 本次提交的是第 $((m + 1)) - $n 位账号。"
+                            node /ql/scripts/$local_scr
+                            echo -e "# 等待`format_time $4`后开始进行下一段任务 ..."
+                            sleep $interval_seconds
+                        else
+                            [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "# 本次提交的是第 $((m + 1)) - $n 位账号。"
+                            node /ql/scripts/$local_scr &
+                            sleep $delay_seconds
                         fi
                     fi
                 fi
             done
+            exit
         else
             echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
         fi
     }
 
-    local tmp_jdCookie jdCookie_3
-    recombin_ck_args_set # 基础参数设定
-    
-    if [ $(echo $Recombin_CK_ARG1|grep '[0-9]') ]; then
-        ## 移除无效 Cookie
-        [[ $Remove_Void_CK = 1 ]] && remove_void_ck
-    else
-        Recombin_CK_ARG1=""
-    fi
+    # 格式化时间
+	format_time(){
+        for i in $@; do
+            if [[ -n "$(echo $i|perl -pe "{s|\.||g}"|sed -n "/^[0-9]\+$/p")" ]]; then
+                time_text=" $i 秒"
+            elif [[ -n "$(echo $i|perl -pe "{s|\.\|s\|m\|h\|d||g}"|sed -n "/^[0-9]\+$/p")" ]]; then
+                time_text="$(echo $i|perl -pe "{s|([a-z])(\d)+|\1 \2|g; s|s| 秒|g; s|m| 分|g; s|h| 小时|g; s|d| 天|g; s|^| |g; s|(\d+)$|\1 秒|g;}")"
+            fi
+            echo -n "$time_text"
+        done
+    }
 
+    local tmp_jdCookie
     ## 导入基础 JD_COOKIE 变量
     if [[ $jdCookie_2 ]]; then
         tmp_jdCookie=$jdCookie_2
@@ -443,11 +507,11 @@ Recombin_CK(){
         source $file_env
         tmp_jdCookie=$JD_COOKIE
     fi
-
     local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
     local user_sum=${#array[*]}
-    [[ $user_sum -lt $Recombin_CK_ARG1 || $Recombin_CK_ARG1 -lt 0 ]] && Recombin_CK_ARG1=$user_sum
+
+    recombin_ck_args_set # 基础参数设定
 
     case $Recombin_CK_Mode in
         1)
@@ -460,7 +524,7 @@ Recombin_CK(){
             combine_rotation $Recombin_CK_ARG1 $Recombin_CK_ARG2
             ;;
         4)
-            combine_team $Recombin_CK_ARG1 $Recombin_CK_ARG2 $Recombin_CK_ARG3 $Recombin_CK_ARG4
+            combine_team $Recombin_CK_ARG1 $Recombin_CK_ARG2 $Recombin_CK_ARG3 $Recombin_CK_ARG4 $Recombin_CK_ARG5 $Recombin_CK_ARG6
             ;;
         5)
             combine_segmentation $Recombin_CK_ARG1 $Recombin_CK_ARG2 $Recombin_CK_ARG3 $Recombin_CK_ARG4
@@ -535,6 +599,12 @@ combine_only() {
         esac
     done
 }
+
+## 魔改版 jdCookie.js 复制到 /ql/deps/。仅支持v2.10.8及以上版本的青龙
+[[ -d $dir_dep && -f $dir_config/jdCookie.js ]] && cp -rf $dir_config/jdCookie.js $dir_dep
+## 魔改版 jdCookie.js 覆盖到 /ql/scripts/及子路径下的所有 jdCookie.js。支持v2.10.8 以下版本的青龙
+[[ -f $dir_config/jdCookie.js ]] && find $dir_scripts -type f -name jdCookie.js|xargs -n 1 cp -rf $dir_config/jdCookie.js && cp -rf $dir_config/jdCookie.js $dir_scripts
+
 
 TempBlock_CK && Recombin_CK
 
