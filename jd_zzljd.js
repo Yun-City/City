@@ -1,7 +1,7 @@
 /*
 [task_local]
 免费领京豆-周周领30京豆
-0 0 0 0 0 1 * jd_zzljd.js, tag=免费领京豆-周周领30京豆, enabled=true
+40 11 * * * jd_zzljd.js, tag=免费领京豆-周周领30京豆, enabled=true
 ================Loon==============
 [Script]
 cron "0 0 0 0 0 1 *" script-path=jd_zzljd.js,tag=免费领京豆-周周领30京豆
