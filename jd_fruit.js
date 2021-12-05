@@ -1,9 +1,6 @@
 /*
-农场助力
-City
- [task_local]
-#脚本配置
-30 12 * * * https://raw.githubusercontent.com/Yun-City/City/main/jd_fruit, tag=农场助力, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+#City脚本配置
+cron "45 0,18 * * *" jd_fruit.js, tag:东东农场助力
 */
 const $ = new Env('东东农场助力');
 let cookiesArr = [], cookie = '', jdFruitShareArr = [], isBox = false, notify, newShareCodes, allMessage = '';
