@@ -3,7 +3,7 @@
 City
  [task_local]
 #脚本配置
-0 5 * * * https://raw.githubusercontent.com/Yun-City/City/main/jd_friend.js, tag=农场删除好友与同意好友, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+0 5 * * * https://raw.githubusercontent.com/Yun-City/City/main/jd_friend, tag=农场删除好友与同意好友, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 */
 const $ = new Env('东东农场好友操作');
 let cookiesArr = [], cookie = '', isBox = false, notify,allMessage = '';
