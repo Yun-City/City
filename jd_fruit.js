@@ -83,39 +83,6 @@ async function turntableFarm() {
   if ($.initForTurntableFarmRes.code === '0') {
     //领取定时奖励 //4小时一次
     let {timingIntervalHours, timingLastSysTime, sysTime, timingGotStatus, remainLotteryTimes, turntableInfos} = $.initForTurntableFarmRes;
-
-    if (!timingGotStatus) {
-      console.log(`是否到了领取免费赠送的抽奖机会----${sysTime > (timingLastSysTime + 60*60*timingIntervalHours*1000)}`)
-      if (sysTime > (timingLastSysTime + 60*60*timingIntervalHours*1000)) {
-        await timingAwardForTurntableFarm();
-        console.log(`领取定时奖励结果${JSON.stringify($.timingAwardRes)}`);
-        await initForTurntableFarm();
-        remainLotteryTimes = $.initForTurntableFarmRes.remainLotteryTimes;
-      } else {
-        console.log(`免费赠送的抽奖机会未到时间`)
-      }
-    } else {
-      console.log('4小时候免费赠送的抽奖机会已领取')
-    }
-    if ($.initForTurntableFarmRes.turntableBrowserAds && $.initForTurntableFarmRes.turntableBrowserAds.length > 0) {
-      for (let index = 0; index < $.initForTurntableFarmRes.turntableBrowserAds.length; index++) {
-        if (!$.initForTurntableFarmRes.turntableBrowserAds[index].status) {
-          console.log(`开始浏览天天抽奖的第${index + 1}个逛会场任务`)
-          await browserForTurntableFarm(1, $.initForTurntableFarmRes.turntableBrowserAds[index].adId);
-          if ($.browserForTurntableFarmRes.code === '0' && $.browserForTurntableFarmRes.status) {
-            console.log(`第${index + 1}个逛会场任务完成，开始领取水滴奖励\n`)
-            await browserForTurntableFarm(2, $.initForTurntableFarmRes.turntableBrowserAds[index].adId);
-            if ($.browserForTurntableFarmRes.code === '0') {
-              console.log(`第${index + 1}个逛会场任务领取水滴奖励完成\n`)
-              await initForTurntableFarm();
-              remainLotteryTimes = $.initForTurntableFarmRes.remainLotteryTimes;
-            }
-          }
-        } else {
-          console.log(`浏览天天抽奖的第${index + 1}个逛会场任务已完成`)
-        }
-      }
-    }
     //天天抽奖助力
     console.log('开始天天抽奖--好友助力--每人每天只有三次助力机会.')
     for (let code of newShareCodes) {

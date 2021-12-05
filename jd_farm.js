@@ -205,6 +205,83 @@ async function doDailyTask() {
   await clockInIn();//打卡领水
   await executeWaterRains();//水滴雨
   await getExtraAward();//领取额外水滴奖励
+  await turntableFarm()//天天抽奖得好礼
+}
+//天天抽奖活动
+async function turntableFarm() {
+  await initForTurntableFarm();
+  if ($.initForTurntableFarmRes.code === '0') {
+    //领取定时奖励 //4小时一次
+    let {timingIntervalHours, timingLastSysTime, sysTime, timingGotStatus, remainLotteryTimes, turntableInfos} = $.initForTurntableFarmRes;
+
+    if (!timingGotStatus) {
+      console.log(`是否到了领取免费赠送的抽奖机会----${sysTime > (timingLastSysTime + 60*60*timingIntervalHours*1000)}`)
+      if (sysTime > (timingLastSysTime + 60*60*timingIntervalHours*1000)) {
+        await timingAwardForTurntableFarm();
+        console.log(`领取定时奖励结果${JSON.stringify($.timingAwardRes)}`);
+        await initForTurntableFarm();
+        remainLotteryTimes = $.initForTurntableFarmRes.remainLotteryTimes;
+      } else {
+        console.log(`免费赠送的抽奖机会未到时间`)
+      }
+    } else {
+      console.log('4小时候免费赠送的抽奖机会已领取')
+    }
+    if ($.initForTurntableFarmRes.turntableBrowserAds && $.initForTurntableFarmRes.turntableBrowserAds.length > 0) {
+      for (let index = 0; index < $.initForTurntableFarmRes.turntableBrowserAds.length; index++) {
+        if (!$.initForTurntableFarmRes.turntableBrowserAds[index].status) {
+          console.log(`开始浏览天天抽奖的第${index + 1}个逛会场任务`)
+          await browserForTurntableFarm(1, $.initForTurntableFarmRes.turntableBrowserAds[index].adId);
+          if ($.browserForTurntableFarmRes.code === '0' && $.browserForTurntableFarmRes.status) {
+            console.log(`第${index + 1}个逛会场任务完成，开始领取水滴奖励\n`)
+            await browserForTurntableFarm(2, $.initForTurntableFarmRes.turntableBrowserAds[index].adId);
+            if ($.browserForTurntableFarmRes.code === '0') {
+              console.log(`第${index + 1}个逛会场任务领取水滴奖励完成\n`)
+              await initForTurntableFarm();
+              remainLotteryTimes = $.initForTurntableFarmRes.remainLotteryTimes;
+            }
+          }
+        } else {
+          console.log(`浏览天天抽奖的第${index + 1}个逛会场任务已完成`)
+        }
+      }
+    }
+    //抽奖
+    if (remainLotteryTimes > 0) {
+      console.log('开始抽奖')
+      let lotteryResult = '';
+      for (let i = 0; i < new Array(remainLotteryTimes).fill('').length; i++) {
+        await lotteryForTurntableFarm()
+        console.log(`第${i + 1}次抽奖结果${JSON.stringify($.lotteryRes)}`);
+        if ($.lotteryRes.code === '0') {
+          turntableInfos.map((item) => {
+            if (item.type === $.lotteryRes.type) {
+              console.log(`lotteryRes.type${$.lotteryRes.type}`);
+              if ($.lotteryRes.type.match(/bean/g) && $.lotteryRes.type.match(/bean/g)[0] === 'bean') {
+                lotteryResult += `${item.name}个，`;
+              } else if ($.lotteryRes.type.match(/water/g) && $.lotteryRes.type.match(/water/g)[0] === 'water') {
+                lotteryResult += `${item.name}，`;
+              } else {
+                lotteryResult += `${item.name}，`;
+              }
+            }
+          })
+          //没有次数了
+          if ($.lotteryRes.remainLotteryTimes === 0) {
+            break
+          }
+        }
+      }
+      if (lotteryResult) {
+        console.log(`【天天抽奖】${lotteryResult.substr(0, lotteryResult.length - 1)}\n`)
+        // message += `【天天抽奖】${lotteryResult.substr(0, lotteryResult.length - 1)}\n`;
+      }
+    }  else {
+      console.log('天天抽奖--抽奖机会为0次')
+    }
+  } else {
+    console.log('初始化天天抽奖得好礼失败')
+  }
 }
 async function predictionFruit() {
   console.log('开始预测水果成熟时间\n');
