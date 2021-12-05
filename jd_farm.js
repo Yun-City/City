@@ -5,7 +5,7 @@ City
 #脚本配置
 5 6-18/6 * * * https://raw.githubusercontent.com/Yun-City/City/main/jd_farm, tag=农场日常任务, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 */
-const $ = new Env('东东农场');
+const $ = new Env('东东农场日常任务');
 let cookiesArr = [], cookie = '', jdFruitShareArr = [], isBox = false, notify, newShareCodes, allMessage = '';
 //助力好友分享码(最多3个,否则后面的助力失败),原因:京东农场每人每天只有3次助力机会
 //此此内容是IOS用户下载脚本到本地使用，填写互助码的地方，同一京东账号的好友互助码请使用@符号隔开。
