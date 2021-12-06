@@ -5,17 +5,17 @@
 ===============Quantumultx===============
 [task_local]
 #众筹许愿池
-40 0,2 * * * https://raw.githubusercontent.com/222222/sync/jd_scripts/jd_wish.js, tag=众筹许愿池, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+40 0,2 * * * https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_wish.js, tag=众筹许愿池, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 
 ================Loon==============
 [Script]
-cron "40 0,2 * * *" script-path=https://raw.githubusercontent.com/222222/sync/jd_scripts/jd_wish.js,tag=众筹许愿池
+cron "40 0,2 * * *" script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_wish.js,tag=众筹许愿池
 
 ===============Surge=================
-众筹许愿池 = type=cron,cronexp="40 0,2 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/222222/sync/jd_scripts/jd_wish.js
+众筹许愿池 = type=cron,cronexp="40 0,2 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_wish.js
 
 ============小火箭=========
-众筹许愿池 = type=cron,script-path=https://raw.githubusercontent.com/222222/sync/jd_scripts/jd_wish.js, cronexpr="40 0,2 * * *", timeout=3600, enable=true
+众筹许愿池 = type=cron,script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_wish.js, cronexpr="40 0,2 * * *", timeout=3600, enable=true
  */
 const $ = new Env('众筹许愿池');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -25,8 +25,8 @@ let message = '', allMessage = '';
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '';
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
-let appIdArr = ['1E1NXxq0', '1FFVQyqw'];
-let appNameArr = ['众筹许愿池', '1111点心动'];
+let appIdArr = ['1E1NXxq0', '1FFVQyqw','1EFVXxg'];
+let appNameArr = ['众筹许愿池', '1111点心动','金榜年终奖'];
 let appId, appName;
 $.shareCode = [];
 if ($.isNode()) {
@@ -78,7 +78,12 @@ if ($.isNode()) {
     await $.wait(1000)
     res = await getAuthorShareCode('https://cdn.jsdelivr.net/gh/Yun-City/City@main/shareCodes/wish.json')
   }
-  $.shareCode = [...$.shareCode, ...(res || [])]
+  let res2 = await getAuthorShareCode('https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/wish.json')
+  if (!res2) {
+    await $.wait(1000)
+    res2 = await getAuthorShareCode('https://raw.fastgit.org/Yun-City/City/main/shareCodes/wish.json')
+  }
+  $.shareCode = [...$.shareCode, ...(res || []), ...(res2 || [])]
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       cookie = cookiesArr[i];
@@ -196,7 +201,7 @@ async function healthyDay_getHomeData(type = true) {
                         if ($.complete) break;
                       }
                     }
-                  } else if (vo.taskType === 14) {
+                  } else if (vo.taskType === 14 || vo.taskType === 6) {
                     console.log(`【京东账号${$.index}（${$.UserName}）的${appName}好友互助码】${vo.assistTaskDetailVo.taskToken}\n`)
                     if (vo.times !== vo.maxTimes) {
                       $.shareCode.push({
@@ -263,7 +268,7 @@ function harmony_collectScore(body = {}, taskType = '') {
 }
 function interact_template_getLotteryResult() {
   return new Promise(resolve => {
-    $.post(taskUrl('interact_template_getLotteryResult', {"appId":appId}), (err, resp, data) => {
+    $.post(taskUrl(appId == '1EFVXxg' ? 'splitHongbao_getLotteryResult' : 'interact_template_getLotteryResult', {"appId":appId}), (err, resp, data) => {
       try {
         if (err) {
           console.log(`${JSON.stringify(err)}`)
