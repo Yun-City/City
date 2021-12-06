@@ -85,7 +85,7 @@ async function jdFruit() {
     await initForFarm();
     await getAwardInviteFriend();//删除好友与接受邀请成为别人的好友
     if ($.farmInfo.farmUserPro) {
-
+     message = `删除好友与接受好友邀请已完成`;
     } else {
       console.log(`初始化农场数据异常, 请登录京东 app查看农场功能是否正常`); 
 	  message+=`初始化农场数据异常, 请登录京东 app查看农场功能是否正常`;
