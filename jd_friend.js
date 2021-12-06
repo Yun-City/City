@@ -14,14 +14,13 @@ const urlSchema = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%2
 let NowHour = new Date().getHours();
 let llhelp=true;
 !(async () => {
-
   await requireConfig();
   if (!cookiesArr[0]) {
     $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
     return;
   }
   if(llhelp){
-	  console.log('正在执行删除农场好友与同意好友');
+	  console.log('开始收集您的互助码，用于好友删除与加好友操作');
 	  for (let i = 0; i < cookiesArr.length; i++) {
 		if (cookiesArr[i]) {
 		  cookie = cookiesArr[i];
@@ -42,6 +41,7 @@ let llhelp=true;
 		  subTitle = '';
 		  option = {};
 		  $.retry = 0;
+		  await GetCollect();
 		}
 	  }
   }
@@ -83,10 +83,9 @@ async function jdFruit() {
   subTitle = `【京东账号${$.index}】${$.nickName || $.UserName}`;
   try {
     await initForFarm();
+    await getAwardInviteFriend();//删除好友与接受邀请成为别人的好友
     if ($.farmInfo.farmUserPro) {
-      //await masterHelpShare();//助力好友
-      //await doDailyTask();//每日签到
-	  await getAwardInviteFriend(); //删除好友
+
     } else {
       console.log(`初始化农场数据异常, 请登录京东 app查看农场功能是否正常`); 
 	  message+=`初始化农场数据异常, 请登录京东 app查看农场功能是否正常`;
@@ -100,9 +99,9 @@ async function jdFruit() {
   }
   await showMsg();
 }
+//
 async function getAwardInviteFriend() {
   await friendListInitForFarm();//查询好友列表
-  // console.log(`查询好友列表数据：${JSON.stringify($.friendList)}\n`)
   if ($.friendList) {
     console.log(`\n今日已邀请好友${$.friendList.inviteFriendCount}个 / 每日邀请上限${$.friendList.inviteFriendMax}个`);
     console.log(`开始删除${$.friendList.friends && $.friendList.friends.length}个好友,可拿每天的邀请奖励`);
@@ -137,12 +136,25 @@ async function receiveFriendInvite() {
       continue
     }
     await inviteFriend(code);
-    // console.log(`接收邀请成为好友结果:${JSON.stringify($.inviteFriendRes)}`)
     if ($.inviteFriendRes && $.inviteFriendRes.helpResult && $.inviteFriendRes.helpResult.code === '0') {
       console.log(`接收邀请成为好友结果成功,您已成为${$.inviteFriendRes.helpResult.masterUserInfo.nickName}的好友`)
     } else if ($.inviteFriendRes && $.inviteFriendRes.helpResult && $.inviteFriendRes.helpResult.code === '17') {
       console.log(`接收邀请成为好友结果失败,对方已是您的好友`)
     }
+  }
+}
+async function GetCollect() {
+  try {
+    await initForFarm();
+    if ($.farmInfo.farmUserPro) {
+      console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}互助码】${$.farmInfo.farmUserPro.shareCode}`);
+      newShareCodes.push($.farmInfo.farmUserPro.shareCode)
+    } else {
+      console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}互助码】\n数据异常,使用City的互助码:4921b9fe76a340f695f9621b53f35cf5`);
+	  newShareCodes.push("4921b9fe76a340f695f9621b53f35cf5");
+    }
+  } catch (e) {
+    $.logErr(e);
   }
 }
 // ========================API调用接口========================
