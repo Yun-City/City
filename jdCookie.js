@@ -45,7 +45,7 @@ function SetShareCodesEnv(nameChinese = "", nameConfig = "", envName = "") {
     let rawCodeConfig = {}
 
     // 读取互助码
-    shareCodeLogPath = `${process.env.QL_DIR}/log/.ShareCode/${nameConfig}.log`
+    let shareCodeLogPath = `${process.env.QL_DIR}/log/.ShareCode/${nameConfig}.log`
     let fs = require('fs')
     if (fs.existsSync(shareCodeLogPath)) {
         // 因为faker2目前没有自带ini，改用已有的dotenv来解析
@@ -59,7 +59,7 @@ function SetShareCodesEnv(nameChinese = "", nameConfig = "", envName = "") {
     }
 
     // 解析每个用户的互助码
-    codes = {}
+    let codes = {}
     Object.keys(rawCodeConfig).forEach(function (key) {
         if (key.startsWith(`My${nameConfig}`)) {
             codes[key] = rawCodeConfig[key]
@@ -70,7 +70,7 @@ function SetShareCodesEnv(nameChinese = "", nameConfig = "", envName = "") {
     let helpOtherCodes = {}
     Object.keys(rawCodeConfig).forEach(function (key) {
         if (key.startsWith(`ForOther${nameConfig}`)) {
-            helpCode = rawCodeConfig[key]
+            let helpCode = rawCodeConfig[key]
             for (const [codeEnv, codeVal] of Object.entries(codes)) {
                 helpCode = helpCode.replace("${" + codeEnv + "}", codeVal)
             }
@@ -81,13 +81,23 @@ function SetShareCodesEnv(nameChinese = "", nameConfig = "", envName = "") {
 
     // 按顺序用&拼凑到一起，并放入环境变量，供目标脚本使用
     let shareCodes = []
-    let totalCodeCount = Object.keys(helpOtherCodes).length
-    for (let idx = 1; idx <= totalCodeCount; idx++) {
+    let leftIndex = 1, rightIndex = Object.keys(helpOtherCodes).length
+
+    // 判断是否是ptask并行触发，若是，则修改实际需要设置的互助码范围
+    let ptaskLeft = process.env.PTASK_LEFT
+    let ptaskRight = process.env.PTASK_RIGHT
+    if (ptaskLeft && ptaskRight) {
+        leftIndex = Number(ptaskLeft)
+        rightIndex = Number(ptaskRight)
+    }
+
+    for (let idx = leftIndex; idx <= rightIndex; idx++) {
         shareCodes.push(helpOtherCodes[`ForOther${nameConfig}${idx}`])
     }
     let shareCodesStr = shareCodes.join('&')
     process.env[envName] = shareCodesStr
 
+    let totalCodeCount = rightIndex - leftIndex + 1
     console.info(`City友情提示：${nameChinese}的 互助码环境变量 ${envName}，共计 ${totalCodeCount} 组互助码，总大小为 ${shareCodesStr.length} 字节`)
 }
 
