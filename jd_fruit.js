@@ -60,7 +60,7 @@ async function jdFruit() {
       // option['media-url'] = $.farmInfo.farmUserPro.goodsImage;
       console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${$.farmInfo.farmUserPro.shareCode}\n`);
       await masterHelpShare();//助力好友
-	  await turntableFarm()//天天抽奖得好礼
+      await turntableFarm();//天天抽奖得好礼
     } else {
       console.log(`初始化农场数据异常, 请登录京东 app查看农场0元水果功能是否正常,农场初始化数据: ${JSON.stringify($.farmInfo)}`);
       message = `【数据异常】请手动登录京东app查看此账号${$.name}是否正常`;
@@ -79,7 +79,7 @@ async function turntableFarm() {
   await initForTurntableFarm();
   if ($.initForTurntableFarmRes.code === '0') {
     //领取定时奖励 //4小时一次
-    let {timingIntervalHours, timingLastSysTime, sysTime, timingGotStatus, remainLotteryTimes, turntableInfos} = $.initForTurntableFarmRes;
+    let {timingIntervalHours, timingLastSysTime, sysTime, remainLotteryTimes, turntableInfos} = $.initForTurntableFarmRes;
     //天天抽奖助力
     console.log('开始天天抽奖--好友助力--每人每天只有三次助力机会.')
     for (let code of newShareCodes) {
@@ -88,7 +88,6 @@ async function turntableFarm() {
         continue
       }
       await lotteryMasterHelp(code);
-      // console.log('天天抽奖助力结果',lotteryMasterHelpRes.helpResult)
       if ($.lotteryMasterHelpRes.helpResult.code === '0') {
         console.log(`天天抽奖-助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}成功\n`)
       } else if ($.lotteryMasterHelpRes.helpResult.code === '11') {
@@ -98,7 +97,7 @@ async function turntableFarm() {
         break;
       }
     }
-    console.log(`---天天抽奖次数remainLotteryTimes----${remainLotteryTimes}次`)
+    console.log(`天天抽奖次数共-${remainLotteryTimes}次`)
     //抽奖
     if (remainLotteryTimes > 0) {
       console.log('开始抽奖')
@@ -130,7 +129,7 @@ async function turntableFarm() {
         // message += `【天天抽奖】${lotteryResult.substr(0, lotteryResult.length - 1)}\n`;
       }
     }  else {
-      console.log('天天抽奖--抽奖机会为0次')
+      console.log('抽奖完成没有次数啦~')
     }
   } else {
     console.log('初始化天天抽奖得好礼失败')
