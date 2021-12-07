@@ -88,7 +88,38 @@ function SetShareCodesEnv(nameChinese = "", nameConfig = "", envName = "") {
     let shareCodesStr = shareCodes.join('&')
     process.env[envName] = shareCodesStr
 
-    console.info(`City友情提示：${nameChinese} 的 互助码环境变量为 ${envName}，正在处理共计 ${totalCodeCount} 组互助码，总大小为 ${shareCodesStr.length} 字节`)
+    console.info(`City友情提示：${nameChinese}的 互助码环境变量 ${envName}，共计 ${totalCodeCount} 组互助码，总大小为 ${shareCodesStr.length} 字节`)
+}
+
+// 判断当前活动脚本是否在互助脚本列表中
+function IsShareJsFile() {
+    // 尝试获取在task_before.sh中设置的 互助活动的脚本文件名的关键部分 列表
+    let rawJsNameList = process.env.ShareCodeJSNameList
+    if (!rawJsNameList) {
+        return false
+    }
+
+    // 转换为list
+    let jsNameList = process.env.ShareCodeJSNameList.split(" ")
+
+    // 判断当前
+    let currentActivityScriptFileName = GetCurrentActivityScriptFileName()
+
+    let isShareJsFile = false
+    for (let idx = 0; idx < jsNameList.length; idx++) {
+        if (currentActivityScriptFileName.includes(jsNameList[idx])) {
+            isShareJsFile = true
+            break
+        }
+    }
+
+    return isShareJsFile
+}
+
+// 获取当前活动脚本的文件名
+function GetCurrentActivityScriptFileName() {
+    const path = require('path')
+    return path.basename(process.argv[1])
 }
 
 // 若在task_before.sh 中设置了要设置互助码环境变量的活动名称和环境变量名称信息，则在nodejs中处理，供活动使用
