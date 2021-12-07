@@ -8,9 +8,6 @@ let jdNotify = true;//是否开启静默运行。默认true开启
 let cookiesArr = [], cookie = '', jdPlantBeanShareArr = [], isBox = false, notify, newShareCodes, option, message,subTitle;
 //京东接口地址
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
-//助力好友分享码(最多3个,否则后面的助力失败)
-//此此内容是IOS用户下载脚本到本地使用，填写互助码的地方，同一京东账号的好友互助码请使用@符号隔开。
-//下面给出两个账号的填写示例（iOS只支持2个京东账号）
 let shareCodes = ['']
 let allMessage = ``;
 let currentRoundId = null;//本期活动id
@@ -47,6 +44,7 @@ let num;
       option = {};
       await shareCodesFormat();
       await jdPlantBean();
+      await showMsg();
     }
   }
   if ($.isNode() && allMessage) {
@@ -60,7 +58,6 @@ let num;
 
 async function jdPlantBean() {
   try {
-    console.log(`获取任务及基本信息`)
     await plantBeanIndex();
     if ($.plantBeanIndexResult.errorCode === 'PB101') {
       console.log(`\n活动太火爆了，还是去买买买吧！\n`)
@@ -83,10 +80,7 @@ async function jdPlantBean() {
       awardState = roundList[num - 1].awardState;
       $.taskList = $.plantBeanIndexResult.data.taskList;
       subTitle = `【京东昵称】${$.plantBeanIndexResult.data.plantUserInfo.plantNickName}`;
-      message += `【上期时间】${roundList[num - 1].dateDesc.replace('上期 ', '')}\n`;
-      message += `【上期成长值】${roundList[num - 1].growth}\n`;
       await doHelp();//助力
-      await plantShareSupportList();
     } else {
       console.log(`种豆得豆-初始失败:  ${JSON.stringify($.plantBeanIndexResult)}`);
     }
@@ -129,6 +123,13 @@ async function doHelp() {
     }
   }
 }
+function showMsg() {
+  $.log(`\n${message}\n`);
+  jdNotify = $.getdata('jdPlantBeanNotify') ? $.getdata('jdPlantBeanNotify') : jdNotify;
+  if (!jdNotify || jdNotify === 'false') {
+    $.msg($.name, subTitle, message);
+  }
+}
 // ================================================此处是API=================================
 //每轮种豆活动获取结束后,自动收取京豆
 async function getReward() {
@@ -166,10 +167,6 @@ async function collectUserNutr(paradiseUuid) {
   }
   $.stealFriendRes = await request(functionId, body);
 }
-async function receiveNutrients() {
-  $.receiveNutrientsRes = await request('receiveNutrients', {"roundId": currentRoundId, "monitor_refer": "plant_receiveNutrients"})
-  // console.log(`定时领取营养液结果:${JSON.stringify($.receiveNutrientsRes)}`)
-}
 async function plantEggDoLottery() {
   $.plantEggDoLotteryResult = await requestGet('plantEggDoLottery');
 }
@@ -199,25 +196,6 @@ async function receiveNutrientsTask(awardType) {
   }
   $.receiveNutrientsTaskRes = await requestGet(functionId, body);
 }
-async function plantShareSupportList() {
-  $.shareSupportList = await requestGet('plantShareSupportList', {"roundId": ""});
-  if ($.shareSupportList && $.shareSupportList.code === '0') {
-    const { data } = $.shareSupportList;
-    //当日北京时间0点时间戳
-    const UTC8_Zero_Time = parseInt((Date.now() + 28800000) / 86400000) * 86400000 - 28800000;
-    //次日北京时间0点时间戳
-    const UTC8_End_Time = parseInt((Date.now() + 28800000) / 86400000) * 86400000 - 28800000 + (24 * 60 * 60 * 1000);
-    let friendList = [];
-    data.map(item => {
-      if (UTC8_Zero_Time <= item['createTime'] && item['createTime'] < UTC8_End_Time) {
-        friendList.push(item);
-      }
-    })
-    message += `【助力您的好友】共${friendList.length}人`;
-  } else {
-    console.log(`异常情况：${JSON.stringify($.shareSupportList)}`)
-  }
-}
 //助力好友的api
 async function helpShare(plantUuid) {
   console.log(`\n开始助力好友: ${plantUuid}`);
@@ -234,15 +212,12 @@ async function plantBeanIndex() {
   $.plantBeanIndexResult = await request('plantBeanIndex');//plantBeanIndexBody
 }
 function readShareCode() {
-  return new Promise(async resolve => {
-    $.get({url: `http://127.0.0.1`, timeout: 10000}, (err, resp, data) => {
+  return new Promise(async resolve => {({timeout: 10000}, (err, resp, data) => {
       try {
         if (err) {
           console.log(JSON.stringify(err))
-          console.log(`${$.name} API请求失败，请检查网路重试`)
         } else {
           if (data) {
-            console.log(`随机取个${randomCount}码放到您固定的互助码后面(不影响已有固定互助)`)
             data = JSON.parse(data);
           }
         }
@@ -264,7 +239,6 @@ function shareCodesFormat() {
     if ($.shareCodesArr[$.index - 1]) {
       newShareCodes = $.shareCodesArr[$.index - 1].split('@');
     } else {
-      console.log(`由于您第${$.index}个京东账号未提供shareCode,将采纳本脚本自带的助力码\n`)
       const tempIndex = $.index > shareCodes.length ? (shareCodes.length - 1) : ($.index - 1);
       newShareCodes = shareCodes[tempIndex].split('@');
     }
