@@ -36,7 +36,7 @@ if (process.env.NO_RUSH && process.env.NO_RUSH != "") {
         return;
     }
     
-    authorCodeList = await getAuthorCodeList('https://gitee.com/fatelight/code/raw/master/lzdz1_jx.json')
+    authorCodeList = await getAuthorCodeList('https://gitee.com/fatelight/code/raw/master/')
     if($.getAuthorCodeListerr === false){
         authorCodeList = ['']
     }
