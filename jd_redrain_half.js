@@ -2,6 +2,10 @@
 半点京豆雨
 更新时间：2021-12-8
 脚本兼容: Quantumult X, Surge, Loon, JSBox, Node.js
+by：msechen
+github:https://github.com/msechen/jdrain
+频道:https://t.me/jdredrain
+交流群组：https://t.me/+xfWwiMAFonwzZDFl
 ==============Quantumult X==============
 [task_local]
 #半点京豆雨
@@ -37,11 +41,11 @@ const JD_API_HOST = 'https://api.m.jd.com/api';
     return;
   }
   let hour = (new Date().getUTCHours() + 8) % 24;
-  $.log(`\n正在远程获取${hour}点30分京豆雨ID\n`);
+  $.log(`\n甘露殿【https://t.me/jdredrain】提醒你:正在远程获取${hour}点30分京豆雨ID\n`);
   await $.wait(1000);
   let redIds = await getRedRainIds();
   if (!redIds.length) {
-    $.log(`\n今日龙王🐲出差，天气晴朗☀️，改日再来～\n`);
+    $.log(`\n甘露殿【https://t.me/jdredrain】提醒你:今日龙王🐲出差，天气晴朗☀️，改日再来～\n`);
     return;
   }
   for (let id of redIds) {
@@ -49,7 +53,7 @@ const JD_API_HOST = 'https://api.m.jd.com/api';
       console.log(`\nRRA: "${id}"不符合规则\n`);
       continue;
     }
-    console.log(`\n龙王就位:${id}，正在领取${hour}点30分京豆雨\n`);
+    console.log(`\n甘露殿【https://t.me/jdredrain】提醒你:龙王就位:${id}，正在领取${hour}点30分京豆雨\n`);
     for (let i = 0; i < cookiesArr.length; i++) {
       if (cookiesArr[i]) {
         cookie = cookiesArr[i];
