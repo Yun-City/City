@@ -5,17 +5,17 @@
 ============Quantumultx===============
 [task_local]
 #京东小魔方
-31 2,8 * * * https://raw.githubusercontent.com/Aaron-lv123123/sync/jd_scripts/jd_mf.js, tag=京东小魔方, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+31 2,8 * * * https://raw.githubusercontent.com/KingRan/JDJB/main/jd_mofang.js, tag=京东小魔方, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 
 ================Loon==============
 [Script]
-cron "31 2,8 * * *" script-path=https://raw.githubusercontent.com/Aaron-lv123123/sync/jd_scripts/jd_mf.js,tag=京东小魔方
+cron "31 2,8 * * *" script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_mofang.js,tag=京东小魔方
 
 ===============Surge=================
-京东小魔方 = type=cron,cronexp="31 2,8 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/Aaron-lv123123/sync/jd_scripts/jd_mf.js
+京东小魔方 = type=cron,cronexp="31 2,8 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_mofang.js
 
 ============小火箭=========
-京东小魔方 = type=cron,script-path=https://raw.githubusercontent.com/Aaron-lv123123/sync/jd_scripts/jd_mf.js, cronexpr="31 2,8 * * *", timeout=3600, enable=true
+京东小魔方 = type=cron,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_mofang.js, cronexpr="31 2,8 * * *", timeout=3600, enable=true
  */
 const $ = new Env('京东小魔方');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -102,8 +102,8 @@ let allMessage = '';
 async function jdMofang() {
   console.log(`集魔方 赢大奖`)
   await getInteractionHomeInfo()
-  // console.log(`\n集魔方 抽京豆 赢新品`)
-  // await getInteractionInfo()
+  //console.log(`\n集魔方 抽京豆 赢新品`)
+  //await getInteractionInfo()
 }
 
 async function getInteractionHomeInfo() {
@@ -256,7 +256,7 @@ function doInteractiveAssignment(extraType, encryptProjectId, sourceCode, encryp
             } else if (extraType === "sign1") {
               console.log(`签到成功：获得${data.rewardsInfo.successRewards[$.type][0] ? `${data.rewardsInfo.successRewards[$.type][0].quantity}${data.rewardsInfo.successRewards[$.type][0].rewardName}` : `${data.rewardsInfo.successRewards[$.type].quantityDetails[0].quantity}${data.rewardsInfo.successRewards[$.type].quantityDetails[0].rewardName}`}`)
             } else if (actionType === "0") {
-              if (data.assignmentInfo.completionCnt === data.assignmentInfo.maxTimes) {
+              if (data.code === 0) {
                 $.complete = true
                 console.log(`完成成功：获得${data.rewardsInfo.successRewards[$.type][0] ? `${data.rewardsInfo.successRewards[$.type][0].quantity}${data.rewardsInfo.successRewards[$.type][0].rewardName}` : `${data.rewardsInfo.successRewards[$.type].quantityDetails[0].quantity}${data.rewardsInfo.successRewards[$.type].quantityDetails[0].rewardName}`}`)
               }
@@ -486,10 +486,10 @@ function getSign(functionid, body, uuid) {
       "client":"apple",
       "clientVersion":"10.1.0"
     }
-    let HostArr = ['jdsig234n.cf', 'sign234er.nz.lu']
+    let HostArr = ['jdsign.cf', 'signer.nz.lu']
     let Host = HostArr[Math.floor((Math.random() * HostArr.length))]
     let options = {
-      url: `https://c123dn.nz.lu/ddo`,
+      url: `https://127.0.0.1`,
       body: JSON.stringify(data),
       headers: {
         Host,
@@ -513,7 +513,6 @@ function getSign(functionid, body, uuid) {
     })
   })
 }
-
 function TotalBean() {
   return new Promise(async resolve => {
     const options = {
