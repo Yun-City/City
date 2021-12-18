@@ -46,13 +46,7 @@ if ($.isNode()) {
             $.bean = 0;
             $.ADID = getUUID('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 1);
             $.UUID = getUUID('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-            authorCodeList = [
-                'fuMB6t0LHdtq7Dc8pm+TwF4tLNYA4seuA67MOIYQxEk3Vl9+AVo4NF+tgyeIc6A6kdK3rLBQpEQH9V4tdrrh0w==',
-                'nYXy96GqoNLmoZYWMzThH14tLNYA4seuA67MOIYQxEk3Vl9+AVo4NF+tgyeIc6A6kdK3rLBQpEQH9V4tdrrh0w==',
-                'NIIGH1E3ihp+jukMM7UfkV4tLNYA4seuA67MOIYQxEk3Vl9+AVo4NF+tgyeIc6A6kdK3rLBQpEQH9V4tdrrh0w==',
-                'gHLldBJLPdovONAzAjPTUMjNhNaYFy2HteErE6izlhTf9nrGY7gBkCdGU4C6z/xD',
-                // 'cFxEkKf5CaLEDTshm0NcCVs/ye9oluZX4nOTK56TeMXbR7I2OlzZch4hTs22oCUS',
-            ]
+            authorCodeList = ['']
             $.appkey = "51B59BB805903DA4CE513D29EC448375"
             $.userId = "10299171"
             $.actId = "ceec991880424cd093aa7c58e8c05_788"
