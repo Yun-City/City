@@ -1,12 +1,29 @@
 /*
-#jd_joyjd_open通用ID任务，多个活动用@连接，任务连接https://jdjoy.jd.com/module/task/v2/doTask
+JoyJd任务脚本
+已支持IOS双京东账号,Node.js支持N个京东账号
+脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
+jd_joyjd_open通用ID任务，多个活动用@连接，任务连接https://jdjoy.jd.com/module/task/v2/doTask
 export comm_activityIDList="af2b3d56e22d43afa0c50622c45ca2a3"  
 export comm_endTimeList="1639756800000"
 export comm_tasknameList="京东工业品抽奖"
 
 即时任务，无需cron,短期或者长期请参考活动规则设置cron
+============Quantumultx===============
+[task_local]
+#JoyJd任务脚本
+5 2,18 * * * https://raw.githubusercontent.com/KingRan/JDJB/main/jd_joyjd_open.js, tag=JoyJd任务脚本, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+
+================Loon==============
+[Script]
+cron "5 2,18 * * *" script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_joyjd_open.js,tag=JoyJd任务脚本
+
+===============Surge=================
+JoyJd任务脚本 = type=cron,cronexp="5 2,18 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_joyjd_open.js
+
+============小火箭=========
+JoyJd任务脚本 = type=cron,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_joyjd_open.js, cronexpr="5 2,18 * * *", timeout=3600, enable=true
 */
-const $ = new Env('jd_joyjd_open通用ID任务');
+const $ = new Env('JoyJd任务脚本');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 let cookiesArr = [];
@@ -38,8 +55,18 @@ if ($.isNode()) {
         return;
     }
     if (!activityIDList) {
-    $.log(`没有通用ID任务，改日再来～`);
-    return;
+        $.log(`没有通用ID任务，尝试获取远程`);
+        let data = await getData("https://gitee.com/Yun-City/City/shareCodes/joyjd_open.json")
+        }
+        if (data.activityIDList && data.activityIDList.length) {
+            $.log(`获取到远程且有数据`);
+            activityIDList = data.activityIDList.join('@')
+            endTimeList = data.endTimeList.join('@')
+            tasknameList = data.tasknameList.join('@')
+        }else{
+            $.log(`获取失败或当前无远程数据`);
+            return
+        }
     }
     console.log(`通用ID任务就位，准备开始薅豆`);
     for (let i = 0; i < cookiesArr.length; i++) {
@@ -81,6 +108,30 @@ if ($.isNode()) {
      }
    }
 })().catch((e) => {$.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')}).finally(() => {$.done();});
+
+function getData(url) {
+  return new Promise(async resolve => {
+    const options = {
+      url: `${url}?${new Date()}`, "timeout": 10000, headers: {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/87.0.4280.88"
+      }
+    };
+    $.get(options, async (err, resp, data) => {
+      try {
+        if (err) {
+        } else {
+          if (data) data = JSON.parse(data)
+        }
+      } catch (e) {
+        // $.logErr(e, resp)
+      } finally {
+        resolve(data);
+      }
+    })
+    await $.wait(10000)
+    resolve();
+  })
+}
 
 async function main() {
     $.mainTime = 0;
