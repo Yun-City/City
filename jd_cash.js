@@ -22,12 +22,8 @@ cron "2 0-23/4 * * *" script-path=jd_cash.js,tag=签到领现金
  */
 const $ = new Env('签到领现金');
 const notify = $.isNode() ? require('./sendNotify') : '';
-//Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
-let jdNotify = true;//是否关闭通知，false打开通知推送，true关闭通知推送
-//IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '', message;
-const randomCount = $.isNode() ? 5 : 5;
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
     cookiesArr.push(jdCookieNode[item])
@@ -86,13 +82,10 @@ async function jdCash() {
   $.signMoney = 0;
 
   await appindex()
-  await index()
-  // await getReward()
-  // await getReward('2');
+  //await index()
   $.exchangeBeanNum = 0;
   cash_exchange = $.isNode() ? (process.env.CASH_EXCHANGE ? process.env.CASH_EXCHANGE : `${cash_exchange}`) : ($.getdata('cash_exchange') ? $.getdata('cash_exchange') : `${cash_exchange}`);
   await appindex(true)
-  // await showMsg()
 }
 
 async function appindex(info=false) {
@@ -121,35 +114,31 @@ async function appindex(info=false) {
               }
               $.signMoney = data.data.result.totalMoney;
               //console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${data.data.result.invitedCode}\n`);
-              let helpInfo = {
-                'inviteCode': data.data.result.invitedCode,
-                'shareDate': data.data.result.shareDate
-              }
               $.shareDate = data.data.result.shareDate;
               for (let task of data.data.result.taskInfos) {
                 if (task.type === 4) {
                   for (let i = task.doTimes; i < task.times; ++i) {
                     console.log(`去做${task.name}任务 ${i+1}/${task.times}`)
                     await appdoTask(task.type, task.jump.params.skuId)
-                    await $.wait(2000)
+                    await $.wait(1000)
                   }
                 } else if (task.type === 2) {
                   for (let i = task.doTimes; i < task.times; ++i) {
                     console.log(`去做${task.name}任务 ${i+1}/${task.times}`)
                     await appdoTask(task.type, task.jump.params.shopId)
-                    await $.wait(2000)
+                    await $.wait(1000)
                   }
                 } else if (task.type === 30) {
                   for (let i = task.doTimes; i < task.times; ++i) {
                     console.log(`去做${task.name}任务 ${i+1}/${task.times}`)
                     await appdoTask(task.type, task.jump.params.path)
-                    await $.wait(2000)
+                    await $.wait(1000)
                   }
                 } else if (task.type === 16 || task.type===3 || task.type===5 || task.type===17 || task.type===21) {
                   for (let i = task.doTimes; i < task.times; ++i) {
                     console.log(`去做${task.name}任务 ${i+1}/${task.times}`)
                     await appdoTask(task.type, task.jump.params.url)
-                    await $.wait(2000)
+                    await $.wait(1000)
                   }
                 }
               }
@@ -180,25 +169,25 @@ function index() {
                   for (let i = task.doTimes; i < task.times; ++i) {
                     console.log(`去做${task.name}任务 ${i+1}/${task.times}`)
                     await doTask(task.type, task.jump.params.skuId)
-                    await $.wait(2000)
+                    await $.wait(1000)
                   }
                 } else if (task.type === 2) {
                   for (let i = task.doTimes; i < task.times; ++i) {
                     console.log(`去做${task.name}任务 ${i+1}/${task.times}`)
                     await doTask(task.type, task.jump.params.shopId)
-                    await $.wait(2000)
+                    await $.wait(1000)
                   }
                 } else if (task.type === 31) {
                   for (let i = task.doTimes; i < task.times; ++i) {
                     console.log(`去做${task.name}任务 ${i+1}/${task.times}`)
                     await doTask(task.type, task.jump.params.path)
-                    await $.wait(2000)
+                    await $.wait(1000)
                   }
                 } else if (task.type === 16 || task.type===3 || task.type===5 || task.type===17 || task.type===21) {
                   for (let i = task.doTimes; i < task.times; ++i) {
                     console.log(`去做${task.name}任务 ${i+1}/${task.times}`)
                     await doTask(task.type, task.jump.params.url)
-                    await $.wait(2000)
+                    await $.wait(1000)
                   }
                 }
               }
@@ -271,33 +260,6 @@ function doTask(type,taskInfo) {
     })
   })
 }
-function getReward(source = 1) {
-  return new Promise((resolve) => {
-    $.get(taskUrl("cash_mob_reward",{"source": Number(source),"rewardNode":""}), (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} API请求失败，请检查网路重试`)
-        } else {
-          if (safeGet(data)) {
-            data = JSON.parse(data);
-            if (data.code === 0 && data.data.bizCode === 0) {
-              console.log(`领奖成功，${data.data.result.shareRewardTip}【${data.data.result.shareRewardAmount}】`)
-              message += `领奖成功，${data.data.result.shareRewardTip}【${data.data.result.shareRewardAmount}元】\n`;
-              // console.log(data.data.result.taskInfos)
-            } else {
-              // console.log(`领奖失败，${data.data.bizMsg}`)
-            }
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve(data);
-      }
-    })
-  })
-}
 function getSign(functionid, body, uuid) {
   return new Promise(async resolve => {
     let data = {
@@ -338,40 +300,6 @@ function randomString(e) {
   for (let i = 0; i < e; i++)
     n += t.charAt(Math.floor(Math.random() * a));
   return n
-}
-function showMsg() {
-  return new Promise(resolve => {
-    if (!jdNotify) {
-      $.msg($.name, '', `${message}`);
-    } else {
-      $.log(`京东账号${$.index}${$.nickName}\n${message}`);
-    }
-    resolve()
-  })
-}
-function readShareCode() {
-  console.log(`开始`)
-  return new Promise(async resolve => {
-    $.get({url: `http://11111113.fun/api/v1/jd/jdcash/read/${randomCount}/`, 'timeout': 30000}, (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} API请求失败，请检查网路重试`)
-        } else {
-          if (data) {
-            console.log(`随机取${randomCount}个码放到您固定的互助码后面(不影响已有固定互助)`)
-            data = JSON.parse(data);
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve(data);
-      }
-    })
-    await $.wait(30000);
-    resolve()
-  })
 }
 function requireConfig() {
   return new Promise(resolve => {
