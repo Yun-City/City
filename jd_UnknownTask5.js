@@ -33,7 +33,7 @@ allMessage = ""
 message = ""
 let UA = ''
 let configCode = 'e71eadcf410d4fe5b79ea7b227488a2b'
-let friendPin = '1SxWKHmezsdVriTLjOkqyoVI+useK94bdK5BQ6zjgl4='
+let friendPin = ''
 let toFriend = 0
 $.temp = [];
 !(async () => {
