@@ -52,7 +52,7 @@ if (process.env.WXGAME_ACT_ID && process.env.WXGAME_ACT_ID != "") {
     }
     if (!wxgameActivityId) {
         $.log(`没有通用ID任务，尝试获取远程`);
-        let data = await getData("https://gitee.com/KingRan521/JD-Scripts/raw/master/shareCodes/jd_game.json")
+        let data = await getData("https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/jd_game.json")
         if (data.wxgameActivityId && data.wxgameActivityId.length) {
             $.log(`获取到远程且有数据`);
             wxgameActivityId = data.wxgameActivityId.join('@')
