@@ -29,10 +29,10 @@ docker exec -it qqinglong bash -c "$(curl -fsSL  https://raw.githubusercontent.c
 docker exec -it qinglong bash -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Yun-City/City/main/Shell/QLOneKeyDependency.sh | sh)"
 ```
 
-【NvJdc一键配置】
+【量子一键配置】
 
 ```bash
-bash <(curl -sL  https://raw.githubusercontents.com/buqian123/Tasks/main/onekey-install-nvjdc.sh)
+bash <(curl -sL  http://jx.lim1.cn/onekey-install-liangzi.sh)
 ```
 
 #### 说明
