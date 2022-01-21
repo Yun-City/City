@@ -12,11 +12,11 @@
 过10分钟再执行
 
 
-cron:21 13 21-27 1 *
+cron:21 3,20 21-27 1 *
 ============Quantumultx===============
 [task_local]
 #2022.1.21-1.27 南北年货 新意回家
-21 13 21-27 1 * https://raw.githubusercontent.com/KingRan/JDJB/main/jd_opencardL59.js, tag=2022.1.21-1.27 南北年货 新意回家, enabled=true
+21 0,17 21-27 1 * https://raw.githubusercontent.com/KingRan/JDJB/main/jd_opencardL59.js, tag=2022.1.21-1.27 南北年货 新意回家, enabled=true
 
 */
 const $ = new Env("2022.1.21-1.27 南北年货 新意回家");
@@ -268,7 +268,7 @@ async function takePostRequest(type) {
         break;
       case 'checkOpenCard':
         url = `${domain}/dingzhi/opencard/checkOpenCard`;
-        body = `activityId=${$.activityId}&pin=${encodeURIComponent($.Pin)}`
+        body = `activityId=${$.activityId}&pin=${encodeURIComponent($.Pin)}&shareUuid=${$.shareUuid}`
         break;
       case 'info':
         url = `${domain}/dingzhi/linkgame/task/info`;
