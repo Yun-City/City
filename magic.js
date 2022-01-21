@@ -2,7 +2,6 @@
 
 const axios = require('axios');
 const fs = require("fs");
-// const moment = require("moment");
 const {format} = require("date-fns");
 const notify = require('./sendNotify');
 const jdCookieNode = require('./jdCookie.js');
@@ -61,6 +60,8 @@ $.defaults.headers['Connection'] = 'keep-alive';
 $.defaults.headers['Accept-Language'] = "zh-CN,zh-Hans;q=0.9";
 $.defaults.headers['Accept-Encoding'] = "gzip, deflate, br";
 
+
+
 function randomNumber(min = 0, max = 100) {
     return Math.min(Math.floor(min + Math.random() * (max - min)), max);
 }
@@ -95,8 +96,9 @@ class Env {
     }) {
         console.log(
             `${this.now()} ${this.name} ${data?.filename ? data?.filename
-                : ''} 开始运行...`)
-        let start = this.timestamp();
+                : ''} 开始运行...`);
+        this.start = this.timestamp();
+        await this.config()
         if (data?.delimiter) {
             this.delimiter = data?.delimiter
         }
@@ -169,26 +171,31 @@ class Env {
                     await this.logic()
                     if (data?.o2o) {
                         await this.send();
-                        testMode ? console.log(this.msg) : ''
+                        testMode ? this.log(this.msg) : ''
                         this.msg = [];
                     }
                     if (once) {
                         break;
                     }
                 } catch (e) {
-                    console.log(e)
+                    this.log('捕获异常', e)
                 }
                 if (data?.wait?.length > 0 && this.index !== cookies.length) {
                     await this.wait(data?.wait[0], data?.wait[1])
                 }
             }
         }
+        await this.after()
         console.log(`${this.now()} ${this.name} 运行结束,耗时 ${this.timestamp()
-        - start}ms\n`)
+        - this.start}ms\n`)
         testMode && this.msg.length > 0 ? console.log(this.msg) : ''
         if (!data?.o2o) {
             await this.send();
         }
+    }
+
+    async config() {
+
     }
 
     deleteCookie() {
@@ -209,6 +216,9 @@ class Env {
 
     async send() {
         if (this.msg?.length > 0) {
+            this.msg.push(
+                '运行时长：' + ((this.timestamp() - this.start) / 1000).toFixed(2)
+                + 's')
             if (this.bot) {
                 await notify.sendNotify("/" + this.name,
                     this.msg.join(this.delimiter || ''))
@@ -219,13 +229,37 @@ class Env {
     }
 
     async verify() {
-        let x = 'm_jx_';
-        this.appId = this.filename ? this.name.slice(0, 1) === 'M'
-                ? (this.filename.includes(x + 'cfd') ? '10032' :
-                    this.filename.includes(x + 'mc') ? '10028' :
-                        this.filename.includes(x + 'factory') ? 'c0ff1' : '') : ''
+        let fn = this.filename
+
+        function av(s) {
+            return s.trim().match(/([a-z_])*$/)[0];
+        }
+
+        let x = '109M95O106F120V95B', y = '99M102F100O', z = '109H99V',
+            j = '102N97I99D116T111G114A121B', k = '112C112U',
+            l = '109N95G106B100K95U', m = '119V120M';
+        let reg = /[A-Z]/;
+        x.concat(y).split(reg).map(o => +o).filter(o => o > 0).forEach(
+            o => y += String.fromCharCode(o))
+        x.concat(z).split(reg).map(o => +o).filter(o => o > 0).forEach(
+            o => z += String.fromCharCode(o))
+        x.concat(j).split(reg).map(o => +o).filter(o => o > 0).forEach(
+            o => j += String.fromCharCode(o))
+        x.concat(k).split(reg).map(o => +o).filter(o => o > 0).forEach(
+            o => k += String.fromCharCode(o))
+        l.concat(m).split(reg).map(o => +o).filter(o => o > 0).forEach(
+            o => m += String.fromCharCode(o))
+        this.appId = fn ? this.name.slice(0, 1)
+            === String.fromCharCode(77)
+                ? (fn.includes(av(y)) ? '10032' :
+                    fn.includes(av(z)) ? '10028' :
+                        fn.includes(av(j)) ? 'c0ff1' :
+                            fn.includes(av(k)) ? '10038' :
+                                fn.includes(av(m)) ? 'wx' : '') : ''
             : '';
-        this.appId ? this.algo = await this._algo() : '';
+        if (this.appId !== 'wx') {
+            this.appId ? this.algo = await this._algo() : '';
+        }
     }
 
     async wait(min, max) {
@@ -252,11 +286,11 @@ class Env {
     }
 
     log(...msg) {
-        console.log(`${this.now()} ${this.username}`, ...msg)
+        this.s ? console.log(...msg) : console.log(
+            `${this.now()} ${this.username}`, ...msg)
     }
 
     build(url) {
-        debugger
         if (url.match(/&callback=(jsonpCBK(.*))&/)) {
             let cb = url.match(/&callback=(jsonpCBK(.*))&/);
             url = url.replace(cb[1], this.randomCallback(cb[2].length || 0))
@@ -323,7 +357,7 @@ class Env {
     }
 
     getQueryString(url, name) {
-        let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        let reg = new RegExp("(^|[&?])" + name + "=([^&]*)(&|$)");
         let r = url.match(reg);
         if (r != null) {
             return unescape(r[2]);
@@ -435,6 +469,14 @@ class Env {
         })
     }
 
+    async get2(url, headers) {
+        return new Promise((resolve, reject) => {
+            $.get(url, {headers: headers}).then(
+                data => resolve(data))
+            .catch(e => reject(e))
+        })
+    }
+
     async post(url, body, headers) {
         url = this.appId ? this.build(url) : url
         return new Promise((resolve, reject) => {
@@ -444,8 +486,48 @@ class Env {
         })
     }
 
+    async request(url, headers, body) {
+        return new Promise((resolve, reject) => {
+            (body ? $.post(url, body, {headers: headers}) : $.get(url,
+                {headers: headers}))
+            .then(data => {
+                this.__lt(data.headers);
+                resolve(data)
+            })
+            .catch(e => reject(e));
+        })
+    }
+
+    __lt(headers) {
+        if (this.appId.length !== 2) {
+            return
+        }
+        let scs = headers['set-cookie'] || headers['Set-Cookie'] || ''
+        if (!scs) {
+            return;
+        }
+        let LZ_TOKEN_KEY = '', LZ_TOKEN_VALUE = ''
+        let sc = typeof scs != 'object' ? scs.split(',') : scs
+        for (let ck of sc) {
+            let name = ck.split(";")[0].trim()
+            if (name.split("=")[1]) {
+                name.includes('LZ_TOKEN_KEY=')
+                    ? LZ_TOKEN_KEY = name.replace(/ /g, '') + ';' : ''
+                name.includes('LZ_TOKEN_VALUE=')
+                    ? LZ_TOKEN_VALUE = name.replace(/ /g, '') + ';' : ''
+            }
+        }
+        if (LZ_TOKEN_KEY && LZ_TOKEN_VALUE) {
+            this.lz = `${LZ_TOKEN_KEY}${LZ_TOKEN_VALUE}`
+        }
+        testMode ? this.log('lz', this.lz) : ''
+    }
+
     handler(res) {
         let data = res.data;
+        if (!data) {
+            return;
+        }
         if (typeof data === 'string') {
             data = data.replace(/[\n\r| ]/g, '');
             if (data.includes("try{jsonpCB")) {
@@ -481,12 +563,14 @@ class Env {
     }
 
     randomString(e) {
-        e = e || 32;
-        let t = "0123456789abcdef", a = t.length, n = '';
-        for (let i = 0; i < e; i++) {
-            n += t.charAt(Math.floor(Math.random() * a));
-        }
-        return n
+        return this.uuid()
+    }
+
+    uuid(x = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") {
+        return x.replace(/[xy]/g, function (x) {
+            const r = 16 * Math.random() | 0, n = "x" === x ? r : 3 & r | 8;
+            return n.toString(36)
+        })
     }
 
     randomCallback(e = 1) {
@@ -511,7 +595,7 @@ class Env {
     }
 
     now(fmt) {
-        return format(new Date(), fmt || 'yyyy-MM-dd HH:mm:ss.SSS')
+        return format(Date.now(), fmt || 'yyyy-MM-dd HH:mm:ss.SSS')
     }
 
     formatDate(date, fmt) {
@@ -566,6 +650,16 @@ class Env {
                 "Cookie": this.cookie
             })
         return data?.farmUserPro?.shareCode ?? ''
+    }
+
+    async sign(fn, body = {}) {
+        const got = require('got');
+        const data = await got.post('https://api.jds.codes/sign', {
+            json: {"fn": fn, "body": body},
+            responseType: 'json'
+        });
+        testMode ? JSON.stringify(data.body) : '';
+        return data.body.data;
     }
 
     async _algo() {
