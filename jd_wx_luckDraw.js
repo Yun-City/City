@@ -2,11 +2,7 @@ let mode = __dirname.includes('/home/magic/Work/wools/magic/raw')
 const {Env} = mode ? require('../magic') : require('./magic')
 const $ = new Env('M幸运抽奖');
 $.lz = 'LZ_TOKEN_KEY=lztokef1eb8494b0af868bd18bdaf8;LZ_TOKEN_VALUE=Aa5RE8RuY4X3zA==;';
-$.activityUrl = process.env.M_WX_LUCK_DRAW_URL ? process.env.M_WX_LUCK_DRAW_URL
-    : '';
-if (mode) {
-    $.activityUrl = 'https://lzkj-isv.isvjcloud.com/wxDrawActivity/activity?activityId=3df02d007f4a474986d048036ef643e2'
-}
+$.activityUrl = 'https://lzkj-isv.isvjcloud.com/lzclient/1643034332288/cjwx/common/entry.html?activityId=a73d1d61b975438ab2a4f43fd6883335'
 let stop = false;
 $.s = 1
 $.logic = async function () {
