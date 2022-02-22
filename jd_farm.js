@@ -3,13 +3,11 @@
 cron "5 6-18/6 * * *" jd_farm.js, tag:东东农场日常任务
 */
 const $ = new Env('东东农场日常任务');
-let cookiesArr = [], cookie = '', jdFruitShareArr = [], isBox = false, notify, newShareCodes, allMessage = '';
-let shareCodes = ['']
+let cookiesArr = [], cookie = '', notify, allMessage = '';
 let message = '', subTitle = '', option = {}, isFruitFinished = false;
 const retainWater = 100;//保留水滴大于多少g,默认100g;
 let jdNotify = false;//是否关闭通知，false打开通知推送，true关闭通知推送
 let jdFruitBeanCard = false;//农场使用水滴换豆卡(如果出现限时活动时100g水换20豆,此时比浇水划算,推荐换豆),true表示换豆(不浇水),false表示不换豆(继续浇水),脚本默认是浇水
-let randomCount = $.isNode() ? 20 : 5;
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
 const urlSchema = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%20%22des%22:%20%22m%22,%20%22url%22:%20%22https://h5.m.jd.com/babelDiy/Zeus/3KSjXqQabiTuD1cJ28QskrpWoBKT/index.html%22%20%7D`;
 !(async () => {
@@ -191,13 +189,6 @@ async function doDailyTask() {
   } else {
     console.log(`给${$.farmTask.waterFriendTaskInit.waterFriendMax}个好友浇水任务已完成\n`)
   }
-  // await Promise.all([
-  //   clockInIn(),//打卡领水
-  //   executeWaterRains(),//水滴雨
-  //   masterHelpShare(),//助力好友
-  //   getExtraAward(),//领取额外水滴奖励
-  //   turntableFarm()//天天抽奖得好礼
-  // ])
   await clockInIn();//打卡领水
   await executeWaterRains();//水滴雨
   await getExtraAward();//领取额外水滴奖励
@@ -429,17 +420,6 @@ async function doTenWaterAgain() {
       console.log(`您目前水滴:${totalEnergy}g,水滴换豆卡${$.myCardInfoRes.beanCard}张,暂不满足水滴换豆的条件,为您继续浇水`)
     }
   }
-  // if (totalEnergy > 100 && $.myCardInfoRes.fastCard > 0) {
-  //   //使用快速浇水卡
-  //   await userMyCardForFarm('fastCard');
-  //   console.log(`使用快速浇水卡结果:${JSON.stringify($.userMyCardRes)}`);
-  //   if ($.userMyCardRes.code === '0') {
-  //     console.log(`已使用快速浇水卡浇水${$.userMyCardRes.waterEnergy}g`);
-  //   }
-  //   await initForFarm();
-  //   totalEnergy  = $.farmInfo.farmUserPro.totalEnergy;
-  // }
-  // 所有的浇水(10次浇水)任务，获取水滴任务完成后，如果剩余水滴大于等于60g,则继续浇水(保留部分水滴是用于完成第二天的浇水10次的任务)
   let overageEnergy = totalEnergy - retainWater;
   if (totalEnergy >= ($.farmInfo.farmUserPro.treeTotalEnergy - $.farmInfo.farmUserPro.treeEnergy)) {
     //如果现有的水滴，大于水果可兑换所需的对滴(也就是把水滴浇完，水果就能兑换了)
@@ -790,14 +770,6 @@ async function duck() {
     if ($.duckRes.code === '0') {
       if (!$.duckRes.hasLimit) {
         console.log(`小鸭子游戏:${$.duckRes.title}`);
-        // if ($.duckRes.type !== 3) {
-        //   console.log(`${$.duckRes.title}`);
-        //   if ($.duckRes.type === 1) {
-        //     message += `【小鸭子】为你带回了水滴\n`;
-        //   } else if ($.duckRes.type === 2) {
-        //     message += `【小鸭子】为你带回快速浇水卡\n`
-        //   }
-        // }
       } else {
         console.log(`${$.duckRes.title}`)
         break;
@@ -901,25 +873,6 @@ async function browserForTurntableFarm(type, adId) {
   $.browserForTurntableFarmRes = await request(arguments.callee.name.toString(), body);
   // 浏览爆品会场8秒
 }
-//天天抽奖浏览任务领取水滴API
-async function browserForTurntableFarm2(type) {
-  const body = {"type":2,"adId": type,"version":4,"channel":1};
-  $.browserForTurntableFarm2Res = await request('browserForTurntableFarm', body);
-}
-/**
- * 天天抽奖拿好礼-助力API(每人每天三次助力机会)
- */
-async function lotteryMasterHelp() {
-  $.lotteryMasterHelpRes = await request(`initForFarm`, {
-    imageUrl: "",
-    nickName: "",
-    shareCode: arguments[0] + '-3',
-    babelChannel: "3",
-    version: 4,
-    channel: 1
-  });
-}
-
 //领取5人助力后的额外奖励API
 async function masterGotFinishedTaskForFarm() {
   const functionId = arguments.callee.name.toString();
@@ -939,27 +892,6 @@ async function farmAssistInit() {
 async function receiveStageEnergy() {
   const functionId = arguments.callee.name.toString();
   $.receiveStageEnergy = await request(functionId, {"version":14,"channel":1,"babelChannel":"120"});
-}
-//接受对方邀请,成为对方好友的API
-async function inviteFriend() {
-  $.inviteFriendRes = await request(`initForFarm`, {
-    imageUrl: "",
-    nickName: "",
-    shareCode: arguments[0] + '-inviteFriend',
-    version: 4,
-    channel: 2
-  });
-}
-// 助力好友API
-async function masterHelp() {
-  $.helpResult = await request(`initForFarm`, {
-    imageUrl: "",
-    nickName: "",
-    shareCode: arguments[0],
-    babelChannel: "3",
-    version: 2,
-    channel: 1
-  });
 }
 /**
  * 水滴雨API
@@ -1115,7 +1047,6 @@ async function showMsg() {
     $.msg($.name, subTitle, message, option);
     if ($.isNode()) {
       allMessage += `${subTitle}\n${message}${$.index !== cookiesArr.length ? '\n\n' : ''}`;
-      // await notify.sendNotify(`${$.name} - 账号${$.index} - ${$.nickName || $.UserName}`, `${subTitle}\n${message}`);
     }
   } else {
     $.log(`\n${message}\n`);
@@ -1135,10 +1066,8 @@ function requireConfig() {
   return new Promise(resolve => {
     console.log('开始获取配置文件\n')
     notify = $.isNode() ? require('./sendNotify') : '';
-    //Node.js用户请在jdCookie.js处填写京东ck;
     const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
     const jdFruitShareCodes = $.isNode() ? require('./jdFruitShareCodes.js') : '';
-    //IOS等用户直接用NobyDa的jd cookie
     if ($.isNode()) {
       Object.keys(jdCookieNode).forEach((item) => {
         if (jdCookieNode[item]) {
@@ -1161,8 +1090,6 @@ function requireConfig() {
       if ($.getdata('jd_fruit_inviter')) $.shareCodesArr = $.getdata('jd_fruit_inviter').split('\n').filter(item => !!item);
       console.log(`\nBoxJs设置的${$.name}好友邀请码:${$.getdata('jd_fruit_inviter') ? $.getdata('jd_fruit_inviter') : '暂无'}\n`);
     }
-    // console.log(`$.shareCodesArr::${JSON.stringify($.shareCodesArr)}`)
-    // console.log(`jdFruitShareArr账号长度::${$.shareCodesArr.length}`)
     resolve()
   })
 }

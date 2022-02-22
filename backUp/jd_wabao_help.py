@@ -3,20 +3,20 @@
 '''
 cron: 30 0,15 * * *
 new Env('发财挖宝内部互助');
-活动入口：京东极速版>我的>发财挖宝
-脚本功能为: 玩一玩，内部互助
-由于每个号只有两次助力机会，所以只助力前两个助力码
-环境变量：JD_COOKIE
-export JD_COOKIE="第1个cookie&第2个cookie"
-地址：https://raw.githubusercontent.com/wuye999/myScripts/main/jd/jd_wabao_help.py
+活动入口: 京东极速版>我的>发财挖宝
+脚本功能为: 内部互助
+由于每个号1次助力机会, 30次助力之后要99人才能加一血 
+所以按ck顺序助力, 每个号最多吃30个助力
+账号1助力作者
+地址: https://raw.githubusercontent.com/wuye999/myScripts/main/jd/jd_wabao_help.py
 '''
-import os,json,random,time,re,string,functools,asyncio
+import os,json,random,time,re,string,functools,asyncio,hashlib,hmac
 import sys
 sys.path.append('../../tmp')
 try:
     import requests
 except Exception as e:
-    print(str(e) + "\n缺少requests模块, 请执行命令：pip3 install requests\n")
+    print(str(e) + "\n缺少requests模块, 请执行命令: pip3 install requests\n")
 requests.packages.urllib3.disable_warnings()
 
 
@@ -106,29 +106,32 @@ cookie_list=Judge_env().main_run()
 
 ## 获取通知服务
 class Msg(object):
-    def getsendNotify(self, a=1):
-        try:
-            url = 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/wuye999/myScripts/main/sendNotify.py'
-            response = requests.get(url,timeout=3)
-            with open('sendNotify.py', "w+", encoding="utf-8") as f:
-                f.write(response.text)
-            return
-        except:
-            pass
-        if a < 5:
-            a += 1
-            return self.getsendNotify(a)
-
-    def main(self,f=1):
+    def getsendNotify(self):
+        url_list = [
+            'https://mirror.ghproxy.com/https://raw.githubusercontent.com/wuye999/myScripts/main/sendNotify.py',
+            'https://cdn.jsdelivr.net/gh/wuye999/myScripts@main/sendNotify.py',
+            'https://raw.fastgit.org/wuye999/myScripts/main/sendNotify.py',
+            'https://raw.githubusercontent.com/wuye999/myScripts/main/sendNotify.py',
+        ]
+        for e,url in enumerate(url_list):
+            try:
+                response = requests.get(url,timeout=10)
+                with open('sendNotify.py', "w+", encoding="utf-8") as f:
+                    f.write(response.text)
+                return
+            except:
+                if e >= (len(url_list)-1):
+                    print('获取通知服务失败，请检查网络连接...')               
+    def main(self,f=0):
         global send,msg,initialize
         sys.path.append(os.path.abspath('.'))
-        for n in range(3):
+        for _ in range(2):
             try:
                 from sendNotify import send,msg,initialize
                 break
             except:
                 self.getsendNotify()
-        l=['BARK','SCKEY','TG_BOT_TOKEN','TG_USER_ID','TG_API_HOST','TG_PROXY_HOST','TG_PROXY_PORT','DD_BOT_TOKEN','DD_BOT_SECRET','Q_SKEY','QQ_MODE','QYWX_AM','PUSH_PLUS_TOKEN','PUSH_PLUS_USER']
+        l=['BARK_PUSH', 'BARK_ARCHIVE', 'BARK_GROUP', 'BARK_SOUND', 'DD_BOT_SECRET', 'DD_BOT_TOKEN', 'FSKEY', 'GOBOT_URL', 'GOBOT_QQ', 'GOBOT_TOKEN', 'GOTIFY_URL', 'GOTIFY_TOKEN', 'GOTIFY_PRIORITY', 'IGOT_PUSH_KEY', 'PUSH_KEY', 'PUSH_PLUS_TOKEN', 'PUSH_PLUS_USER', 'QMSG_KEY', 'QMSG_TYPE', 'QYWX_AM', 'QYWX_KEY', 'TG_BOT_TOKEN', 'TG_USER_ID', 'TG_API_HOST', 'TG_PROXY_AUTH', 'TG_PROXY_HOST', 'TG_PROXY_PORT']
         d={}
         for a in l:
             try:
@@ -138,17 +141,15 @@ class Msg(object):
         try:
             initialize(d)
         except:
-            self.getsendNotify()
-            if f < 5:
+            if f < 2:
                 f += 1
+                self.getsendNotify()
                 return self.main(f)
-            else:
-                print('获取通知服务失败，请检查网络连接...')
-Msg().main()   # 初始化通知服务    
+Msg().main()   # 初始化通知服务     
 
 
-def taskGetUrl(functionId, body, cookie):
-    url=f'https://api.m.jd.com/?functionId={functionId}&body={json.dumps(body)}&t={gettimestamp()}&appid=activities_platform&client=H5&clientVersion=1.0.0'
+def taskGetUrl(url, cookie):
+    url=url
     headers={
         'Cookie': cookie,
         'Host': 'api.m.jd.com',
@@ -160,33 +161,19 @@ def taskGetUrl(functionId, body, cookie):
         'Accept-Language': 'zh-cn',
         'Accept-Encoding': 'gzip, deflate, br',
     }
-    for n in range(3):
-        try:
-            res=requests.get(url,headers=headers).json()
-            return res
-        except:
-            if n==2:
-                msg('API请求失败，请检查网路重试❗\n')   
-
-
-# 剩余血量
-def xueliang(cookie):
-    body={"linkId":linkId}
-    res=taskGetUrl("happyDigHome", body, cookie)
-    if not res:
-        return
-    if res['code']==0:
-        if res['success']:
-            curRound=res['data']['curRound']                        # 未知
-            blood=res['data']['blood']                              # 剩余血量
-            return blood      
+    try:
+        res=requests.get(url,headers=headers).json()
+        return res
+    except:
+        msg('API请求失败，请检查网路重试❗\n')   
 
 
 # 助力码
 def inviteCode(cookie):
     global inviteCode_1_list,inviteCode_2_list
     body={"linkId":linkId}
-    res=taskGetUrl("happyDigHome", body, cookie)
+    url=get_h5st_url(body,'happyDigHome')
+    res=taskGetUrl(url, cookie)
     if not res:
         return
     try:
@@ -200,55 +187,101 @@ def inviteCode(cookie):
     except:
         msg(f"错误\n{res}\n")
 
+
+# post请求，将参数timestamp, md5_file，body, typeid上传, 计算url的h5st, 返回带h5st的url
+def get_h5st_url(body,typeid):
+    time.sleep(0.5)
+    with open(os.path.abspath(__file__), 'rb') as f:
+        md5obj = hashlib.md5()
+        md5obj.update(f.read())
+        md5_file = md5obj.hexdigest()
+        # print(md5_file)
+    body=body
+    typeid=typeid
+    timestamp=gettimestamp()
+    md5_file=hmac.new(timestamp.encode('utf-8'), md5_file.encode('utf-8'), digestmod=hashlib.md5).hexdigest()
+    url='http://121.4.99.83:5000/get_h5st'
+    data={'timestamp': timestamp, 'md5_file': md5_file, 'body': body, 'typeid': typeid}
+    res=requests.post(url,json=data).json()
+    if res['code']=='200':
+        return res['url']
+    else:
+        print('请求h5st失败')
+
+
 # 助力
-def happyDigHelp(cookie,fcwbinviter,fcwbinviteCode):
-    msg(f"账号 {get_pin(cookie)} 去助力{fcwbinviteCode}")
-    xueliang(cookie)
+def happyDigHelp(cookie,fcwbinviter,fcwbinviteCode,flag=False):
+    global Calculator
+    if flag:
+        msg(f"账号1 {get_pin(cookie)} 去助力作者")
+    else:
+        msg(f"账号 {get_pin(cookie)} 去助力{fcwbinviteCode}")
     body={"linkId":linkId,"inviter":fcwbinviter,"inviteCode":fcwbinviteCode}
-    url=f'https://api.m.jd.com/?functionId=happyDigHelp&body={json.dumps(body)}&t={gettimestamp()}&appid=activities_platform&client=H5&clientVersion=1.0.0&h5st=20211123184338304;7340749128476656;8dd95;tk02w85c11bfb18n6NZmESRQhd0NHQ+qb2ly+KK2XlQJDFe++pQ3pEiHZvMaCngfvv1mOtdbPwsP+/xsfto1x5iFqNED;64be02f922fd8377e0e37c729bb956b7ea054e26cfcf20ac856791273031ebec;3.0;1637664218304'
+    url=get_h5st_url(body,'happyDigHelp')
     headers={
-        'Host': 'api.m.jd.com',
         'accept': 'application/json, text/plain, */*',
         'origin': 'https://bnzf.jd.com',
         'user-agent': ua(),
         'sec-fetch-mode': 'cors',
         'x-requested-with': 'com.jd.jdlite',
         'sec-fetch-site': 'same-site',
+        'referer': 'https://bnzf.jd.com/?activityId=pTTvJeSTrpthgk9ASBVGsw&inviterId=t8WU7JDAfgD38T-JcrTPcvPU1jIG_31s6BE-7-g2tx0&inviterCode=8bcde7e9a2044250989df74454d3ff7496691640589643091&utm_user=plusmember&ad_od=share&utm_source=androidapp&utm_medium=appshare&utm_campaign=t_335139774&utm_term=QQfriends&sid=e97be74f93dda4d8c6ba6a8123b6d58w&un_area=4_134_19915_0',
         'accept-encoding': 'gzip, deflate, br',
         'accept-language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Cookie': cookie,
+        'cookie': cookie
     }
-    for n in range(3):
-        try:
-            res=requests.get(url,headers=headers).json()
-            break
-        except:
-            if n==2:
-                msg('API请求失败，请检查网路重试❗\n') 
-                return
+    res=requests.get(url,headers=headers).json()
     if res['success']:
-        msg('助力成功')
+        if not flag:
+            Calculator+=1
+        print('助力成功')
     else:
-        msg(res['errMsg'])
+        print(res['errMsg'])
     
 
+# 账号1助力作者
+def author_helpcode(cookie):
+    url_list = ['']
+    for e,url in enumerate(url_list):
+        try:
+            response = requests.get(url,timeout=10).json()
+            break
+        except:
+            if e >= (len(url_list)-1):
+                print('获取助力码，请检查网络连接...')   
+    helpcode_list=response['jd_wabao_help']
+    helpcode=random.choice(helpcode_list)
+    fcwbinviter=helpcode.split('&&&')[0]
+    fcwbinviteCode=helpcode.split('&&&')[1]
+    happyDigHelp(cookie,fcwbinviter,fcwbinviteCode,True)
+
+
 def main():
-    msg('🔔发财挖宝内部互助，开始！\n')
+    global cookie_list
+    msg('🔔发财挖宝内部互助，开始!\n')
     msg(f'====================共{len(cookie_list)}京东个账号Cookie=========\n')
 
     msg('获取助力码\n')
     global inviteCode_1_list,inviteCode_2_list
     inviteCode_1_list=list()
     inviteCode_2_list=list()
-    for cookie in cookie_list[:2]:
+    n=int(len(cookie_list)/30)+1
+    for cookie in cookie_list[:n]:
         inviteCode(cookie) 
 
     msg('\n互助\n')
-    inviteCode_2_list=inviteCode_2_list[:2]
+    global Calculator
     for e,fcwbinviter in enumerate(inviteCode_2_list):
         fcwbinviteCode=inviteCode_1_list[e]
-        for cookie in cookie_list:
-            happyDigHelp(cookie,fcwbinviter,fcwbinviteCode)
+        Calculator=0
+        for f,cookie in enumerate(cookie_list):
+            if f==0:
+                author_helpcode(cookie)
+            elif Calculator>=30:
+                cookie_list=cookie_list[f-1:]
+                break
+            else: 
+                happyDigHelp(cookie,fcwbinviter,fcwbinviteCode)
 
     if run_send=='yes':
         send('### 发财挖宝内部互助 ###')   # 通知服务
@@ -256,6 +289,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+    
 
 

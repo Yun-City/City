@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 #
 
+'''
+new Env('青龙依赖一键安装');
+'''
 # 青龙一键安装脚本
 # GitHub仓库： https://github.com/FlechazoPh/QLDependency
 
