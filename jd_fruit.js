@@ -7,6 +7,7 @@ let cookiesArr = [], cookie = '', notify, newShareCodes, allMessage = '';
 let shareCodes = ['']
 let message = '', subTitle = '', option = {}
 let jdNotify = false;//是否关闭通知，false打开通知推送，true关闭通知推送
+let lnrun = 0;
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
 !(async () => {
   await requireConfig();
@@ -34,8 +35,16 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
       message = '';
       subTitle = '';
       option = {};
+      $.retry = 0;
+    lnrun++;
       await shareCodesFormat();
       await jdFruit();
+      if (lnrun == 15) {
+      console.log(`\n访问接口次数达到15次，休息30秒.....\n`);
+      await $.wait(30 * 1000);
+      lnrun = 0;
+     }
+
     }
   }
   if ($.isNode() && allMessage && $.ctrTemp) {
@@ -49,26 +58,38 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
       $.done();
     })
 async function jdFruit() {
-  subTitle = `【京东账号${$.index}】${$.nickName || $.UserName}`;
-  try {
-    await initForFarm();
-    if ($.farmInfo.farmUserPro) {
-      // option['media-url'] = $.farmInfo.farmUserPro.goodsImage;
-      console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${$.farmInfo.farmUserPro.shareCode}\n`);
-      await masterHelpShare();//助力好友
-      await turntableFarm();//天天抽奖得好礼
-    } else {
-      console.log(`初始化农场数据异常, 请登录京东 app查看农场0元水果功能是否正常,农场初始化数据: ${JSON.stringify($.farmInfo)}`);
-      message = `【数据异常】请手动登录京东app查看此账号${$.name}是否正常`;
+    subTitle = `【京东账号${$.index}】${$.nickName || $.UserName}`;
+    try {
+        await initForFarm();
+        if ($.farmInfo.farmUserPro) {
+            console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${$.farmInfo.farmUserPro.shareCode}\n`);
+            await masterHelpShare(); //助力好友
+			await turntableFarm();//天天抽奖得好礼
+            if ($.farmInfo.treeState === 2 || $.farmInfo.treeState === 3) {
+                option['open-url'] = urlSchema;
+                //$.msg($.name, ``, `【京东账号${$.index}】${$.nickName || $.UserName}\n【提醒⏰】${$.farmInfo.farmUserPro.name}已可领取\n请去京东APP或微信小程序查看\n点击弹窗即达`, option);
+                return
+            } else if ($.farmInfo.treeState === 1) {
+                //console.log(`\n${$.farmInfo.farmUserPro.name}种植中...\n`)
+            } else if ($.farmInfo.treeState === 0) {
+                //已下单购买, 但未开始种植新的水果
+                option['open-url'] = urlSchema;
+                //$.msg($.name, ``, `【京东账号${$.index}】 ${$.nickName || $.UserName}\n【提醒⏰】您忘了种植新的水果\n请去京东APP或微信小程序选购并种植新的水果\n点击弹窗即达`, option);
+                return
+            }
+        } else {
+            //console.log(`初始化农场数据异常, 请登录京东 app查看农场0元水果功能是否正常,农场初始化数据!`);
+            if ($.retry < 2) {
+                $.retry++
+                    console.log(`黑号？等待3秒后重试,第:${$.retry}次`);
+                await $.wait(3000);
+                await jdFruit();
+            }
+        }
+    } catch (e) {
+        $.logErr(e);
     }
-  } catch (e) {
-    console.log(`任务执行异常，请检查执行日志 ‼️‼️`);
-    $.logErr(e);
-    const errMsg = `京东账号${$.index} ${$.nickName || $.UserName}\n任务执行异常，请检查执行日志 ‼️‼️`;
-    if ($.isNode()) await notify.sendNotify(`${$.name}`, errMsg);
-    $.msg($.name, '', `${errMsg}`)
-  }
-  await showMsg();
+    await showMsg();
 }
 //天天抽奖活动
 async function turntableFarm() {
@@ -87,7 +108,7 @@ async function turntableFarm() {
       if ($.lotteryMasterHelpRes.helpResult.code === '0') {
         console.log(`天天抽奖-助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}成功\n`)
       } else if ($.lotteryMasterHelpRes.helpResult.code === '11') {
-        console.log(`天天抽奖-不要重复助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}\n`)
+        console.log(`天天抽奖-重复助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}\n`)
       } else if ($.lotteryMasterHelpRes.helpResult.code === '13') {
         console.log(`天天抽奖-助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}失败,助力次数耗尽\n`);
         break;
@@ -121,7 +142,7 @@ async function turntableFarm() {
         }
       }
       if (lotteryResult) {
-        console.log(`【天天抽奖】${lotteryResult.substr(0, lotteryResult.length - 1)}\n`)
+        console.log(`天天抽奖：${lotteryResult.substr(0, lotteryResult.length - 1)}\n`)
       }
     }  else {
       console.log('抽奖完成没有次数啦~')
@@ -150,19 +171,19 @@ async function masterHelpShare() {
       if ($.helpResult.helpResult.code === '0') {
         //助力成功
         salveHelpAddWater += $.helpResult.helpResult.salveHelpAddWater;
-        console.log(`【助力好友结果】: 已成功给【${$.helpResult.helpResult.masterUserInfo.nickName}】助力`);
-        console.log(`给好友【${$.helpResult.helpResult.masterUserInfo.nickName}】助力获得${$.helpResult.helpResult.salveHelpAddWater}g水滴`)
+        console.log(`助力好友结果: 已成功给${$.helpResult.helpResult.masterUserInfo.nickName}助力`);
+        console.log(`给好友${$.helpResult.helpResult.masterUserInfo.nickName}助力获得${$.helpResult.helpResult.salveHelpAddWater}g水滴`)
         helpSuccessPeoples += ($.helpResult.helpResult.masterUserInfo.nickName || '匿名用户') + ',';
       } else if ($.helpResult.helpResult.code === '8') {
-        console.log(`【助力好友结果】: 助力【${$.helpResult.helpResult.masterUserInfo.nickName}】失败，您今天助力次数已耗尽`);
+        console.log(`助力好友结果: 助力${$.helpResult.helpResult.masterUserInfo.nickName}失败，您今天助力次数已耗尽`);
       } else if ($.helpResult.helpResult.code === '9') {
-        console.log(`【助力好友结果】: 之前给【${$.helpResult.helpResult.masterUserInfo.nickName}】助力过了`);
+        console.log(`助力好友结果: 之前给${$.helpResult.helpResult.masterUserInfo.nickName}助力过了`);
       } else if ($.helpResult.helpResult.code === '10') {
-        console.log(`【助力好友结果】: 好友【${$.helpResult.helpResult.masterUserInfo.nickName}】已满五人助力`);
+        console.log(`助力好友结果: 好友${$.helpResult.helpResult.masterUserInfo.nickName}已满五人助力`);
       } else {
         console.log(`助力其他情况：${JSON.stringify($.helpResult.helpResult)}`);
       }
-      console.log(`【今日助力次数还剩】${$.helpResult.helpResult.remainTimes}次\n`);
+      console.log(`今日助力次数还剩：${$.helpResult.helpResult.remainTimes}次\n`);
       remainTimes = $.helpResult.helpResult.remainTimes;
       if ($.helpResult.helpResult.remainTimes === 0) {
         console.log(`您当前助力次数已耗尽，跳出助力`);
@@ -189,14 +210,14 @@ async function masterHelpShare() {
     helpSuccessPeoples = $.getdata(helpSuccessPeoplesKey);
   }
   if (helpSuccessPeoples && helpSuccessPeoples.length > 0) {
-    message += `【您助力的好友👬】${helpSuccessPeoples.substr(0, helpSuccessPeoples.length - 1)}\n`;
+    message += `【您助力的好友】${helpSuccessPeoples.substr(0, helpSuccessPeoples.length - 1)}\n`;
   }
   if (salveHelpAddWater > 0) {
     // message += `【助力好友👬】获得${salveHelpAddWater}g💧\n`;
-    console.log(`【助力好友👬】获得${salveHelpAddWater}g💧\n`);
+    console.log(`【助力好友】获得${salveHelpAddWater}g💧\n`);
   }
-  message += `【今日剩余助力👬】${remainTimes}次\n`;
-  console.log('助力好友结束，即将开始领取额外水滴奖励\n');
+  message += `【剩余助力👬】${remainTimes}次\n`;
+  console.log('助力好友结束，即将开始天天抽奖助力\n');
 }
 // ========================API调用接口========================
 // 初始化集卡抽奖活动数据API

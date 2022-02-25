@@ -3,16 +3,26 @@
 cron "5 3 * * *" jd_farm.js, tag:东东农场好友操作
 */
 const $ = new Env('东东农场好友操作');
-let cookiesArr = [], cookie = '', isBox = false, notify,allMessage = '';
+let cookiesArr = [], cookie = '';
 let newShareCodes=[];
-let message = '', subTitle = '', option = {}, isFruitFinished = false;
-const retainWater = $.isNode() ? (process.env.retainWater ? process.env.retainWater : 100) : ($.getdata('retainWater') ? $.getdata('retainWater') : 100);//保留水滴大于多少g,默认100g;
-let jdNotify = false;//是否关闭通知，false打开通知推送，true关闭通知推送
-let jdFruitBeanCard = false;//农场使用水滴换豆卡(如果出现限时活动时100g水换20豆,此时比浇水划算,推荐换豆),true表示换豆(不浇水),false表示不换豆(继续浇水),脚本默认是浇水
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
-const urlSchema = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%20%22des%22:%20%22m%22,%20%22url%22:%20%22https://h5.m.jd.com/babelDiy/Zeus/3KSjXqQabiTuD1cJ28QskrpWoBKT/index.html%22%20%7D`;
 let NowHour = new Date().getHours();
-let llhelp=true;
+let llhelp = true;
+const fs = require('fs');
+let boolneedUpdate = false;
+let strShare = './Fruit_ShareCache.json';
+let Fileexists = fs.existsSync(strShare);
+let TempShareCache = [];
+if (Fileexists) {
+    console.log("检测到东东农场缓存文件Fruit_ShareCache.json，载入...");
+    TempShareCache = fs.readFileSync(strShare, 'utf-8');
+    if (TempShareCache) {
+        TempShareCache = TempShareCache.toString();
+        TempShareCache = JSON.parse(TempShareCache);
+    }
+}
+let lnrun = 0;
+let llgetshare = false;
 !(async () => {
   await requireConfig();
   if (!cookiesArr[0]) {
@@ -20,55 +30,83 @@ let llhelp=true;
     return;
   }
   if(llhelp){
-	  console.log('开始收集您的互助码，用于好友删除与加好友操作');
-	  for (let i = 0; i < cookiesArr.length; i++) {
-		if (cookiesArr[i]) {
-		  cookie = cookiesArr[i];
-		  $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
-		  $.index = i + 1;
-		  $.isLogin = true;
-		  $.nickName = '';
-		  await TotalBean();      
-		  if (!$.isLogin) {
-			$.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
+	console.log('开始收集您的互助码，用于好友删除与加好友操作');
+    for (let i = 0; i < cookiesArr.length; i++) {
+        if (cookiesArr[i]) {
+            cookie = cookiesArr[i];
+            $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
+            $.index = i + 1;
+            $.isLogin = true;
+            $.nickName = '';
+            await TotalBean();
+            if (!$.isLogin) {
+                $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
 
-			if ($.isNode()) {
-			  await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
-			}
-			continue
-		  }
-		  message = '';
-		  subTitle = '';
-		  option = {};
-		  $.retry = 0;
-		  await GetCollect();
-		}
-	  }
-  }
-  for (let i = 0; i < cookiesArr.length; i++) {
-    if (cookiesArr[i]) {
-      cookie = cookiesArr[i];
-      $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
-      $.index = i + 1;
-      $.isLogin = true;
-      $.nickName = '';
-      await TotalBean();
-      console.log(`\n开始【京东账号${$.index}】${$.nickName || $.UserName}\n`);
-      if (!$.isLogin) {
-        $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
-
-        if ($.isNode()) {
-          await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
-        }
-        continue
+                  if ($.isNode()) {
+                      await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
+                  }
+                  continue
+              }
+              message = '';
+              subTitle = '';
+              option = {};
+              $.retry = 0;
+			  llgetshare = false;
+              await GetCollect();
+			  if(llgetshare){
+				  await $.wait(5000);
+				  lnrun++;				  
+			  }
+			  if(lnrun == 10){
+				  console.log(`\n访问接口次数达到10次，休息一分钟.....\n`);
+				  await $.wait(60*1000);
+				  lnrun = 0;
+			  }
+          }
       }
-      message = '';
-      subTitle = '';
-      option = {};
-      $.retry = 0;
-      await jdFruit();
-    }
+      if (boolneedUpdate) {
+          var str = JSON.stringify(TempShareCache, null, 2);
+          fs.writeFile(strShare, str, function (err) {
+              if (err) {
+                  console.log(err);
+                  console.log("\n缓存文件Fruit_ShareCache.json更新失败!\n");
+              } else {
+                  console.log("\n缓存文件Fruit_ShareCache.json更新成功!\n");
+              }
+          })
+      }
   }
+  console.log('\n互助码已经收集完毕，开始执行任务请稍等...\n');
+    for (let i = 0; i < cookiesArr.length; i++) {
+        if (cookiesArr[i]) {
+            cookie = cookiesArr[i];
+            $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
+            $.index = i + 1;
+            $.isLogin = true;
+            $.nickName = '';
+            await TotalBean();
+            console.log(`\n开始【京东账号${$.index}】${$.nickName || $.UserName}\n`);
+            if (!$.isLogin) {
+                $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
+
+                if ($.isNode()) {
+                    await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
+                }
+                continue
+            }
+            message = '';
+            subTitle = '';
+            option = {};
+            $.retry = 0;
+          lnrun++;
+          await jdFruit();
+          if (lnrun == 5) {
+              console.log(`\n访问接口次数达到5次，休息一分钟.....\n`);
+              await $.wait(60 * 1000);
+              lnrun = 0;
+          }
+        }
+    }
   if ($.isNode() && allMessage && $.ctrTemp) {
     await notify.sendNotify(`${$.name}`, `${allMessage}`)
   }
@@ -97,7 +135,7 @@ async function jdFruit() {
     if ($.isNode()) await notify.sendNotify(`${$.name}`, errMsg);
     $.msg($.name, '', `${errMsg}`)
   }
-  await showMsg();
+  //await showMsg();
 }
 //
 async function getAwardInviteFriend() {
@@ -144,252 +182,45 @@ async function receiveFriendInvite() {
   }
 }
 async function GetCollect() {
-  try {
-    await initForFarm();
-    if ($.farmInfo.farmUserPro) {
-      console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}互助码】${$.farmInfo.farmUserPro.shareCode}`);
-      newShareCodes.push($.farmInfo.farmUserPro.shareCode)
-    } else {
-      console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}互助码】\n数据异常,使用City的互助码:4921b9fe76a340f695f9621b53f35cf5`);
-	  newShareCodes.push("4921b9fe76a340f695f9621b53f35cf5");
-    }
-  } catch (e) {
-    $.logErr(e);
-  }
-}
-// ========================API调用接口========================
-//鸭子，点我有惊喜
-async function getFullCollectionReward() {
-  return new Promise(resolve => {
-    const body = { "type": 2, "version": 6, "channel": 2 };
-    $.post(taskUrl("getFullCollectionReward", body), (err, resp, data) => {
-      try {
-        if (err) {
-          console.log('\n东东农场: API查询请求失败 ‼️‼️');
-          console.log(JSON.stringify(err));
-          $.logErr(err);
-        } else {
-          if (safeGet(data)) {
-            $.duckRes = JSON.parse(data);
-          }
+    try {
+		console.log(`\n京东账号${$.index}（${$.UserName}）的${$.name}码`);
+        var llfound = false;
+        var strShareCode = "";
+        if (TempShareCache) {
+            for (let j = 0; j < TempShareCache.length; j++) {
+                if (TempShareCache[j].pt_pin == $.UserName) {
+                    llfound = true;
+                    strShareCode = TempShareCache[j].ShareCode;
+                }
+            }
         }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
-    })
-  })
-}
+        if (!llfound) {
+            console.log($.UserName + "该账号无缓存");
+			llgetshare=true;
+            await initForFarm();			
+            if ($.farmInfo.farmUserPro) {
+                var tempAddCK = {};
+				strShareCode=$.farmInfo.farmUserPro.shareCode;
+                tempAddCK = {
+                    "pt_pin": $.UserName,
+                    "ShareCode": strShareCode
+                };
+                TempShareCache.push(tempAddCK);
+                //标识，需要更新缓存文件
+                boolneedUpdate = true;
+            }
+        }
 
-/**
- * 领取10次浇水奖励API
- */
-async function totalWaterTaskForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.totalWaterReward = await request(functionId);
-}
-//领取首次浇水奖励API
-async function firstWaterTaskForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.firstWaterReward = await request(functionId);
-}
-//领取给3个好友浇水后的奖励水滴API
-async function waterFriendGotAwardForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.waterFriendGotAwardRes = await request(functionId, { "version": 4, "channel": 1 });
-}
-// 查询背包道具卡API
-async function myCardInfoForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.myCardInfoRes = await request(functionId, { "version": 5, "channel": 1 });
-}
-//使用道具卡API
-async function userMyCardForFarm(cardType) {
-  const functionId = arguments.callee.name.toString();
-  $.userMyCardRes = await request(functionId, { "cardType": cardType });
-}
-/**
- * 领取浇水过程中的阶段性奖励
- * @param type
- * @returns {Promise<void>}
- */
-async function gotStageAwardForFarm(type) {
-  $.gotStageAwardForFarmRes = await request(arguments.callee.name.toString(), { 'type': type });
-}
-//浇水API
-async function waterGoodForFarm() {
-  await $.wait(1000);
-  console.log('等待了1秒');
-
-  const functionId = arguments.callee.name.toString();
-  $.waterResult = await request(functionId);
-}
-// 初始化集卡抽奖活动数据API
-async function initForTurntableFarm() {
-  $.initForTurntableFarmRes = await request(arguments.callee.name.toString(), { version: 4, channel: 1 });
-}
-async function lotteryForTurntableFarm() {
-  await $.wait(2000);
-  console.log('等待了2秒');
-  $.lotteryRes = await request(arguments.callee.name.toString(), { type: 1, version: 4, channel: 1 });
-}
-
-async function timingAwardForTurntableFarm() {
-  $.timingAwardRes = await request(arguments.callee.name.toString(), { version: 4, channel: 1 });
-}
-
-async function browserForTurntableFarm(type, adId) {
-  if (type === 1) {
-    console.log('浏览爆品会场');
-  }
-  if (type === 2) {
-    console.log('天天抽奖浏览任务领取水滴');
-  }
-  const body = { "type": type, "adId": adId, "version": 4, "channel": 1 };
-  $.browserForTurntableFarmRes = await request(arguments.callee.name.toString(), body);
-  // 浏览爆品会场8秒
-}
-//天天抽奖浏览任务领取水滴API
-async function browserForTurntableFarm2(type) {
-  const body = { "type": 2, "adId": type, "version": 4, "channel": 1 };
-  $.browserForTurntableFarm2Res = await request('browserForTurntableFarm', body);
-}
-/**
- * 天天抽奖拿好礼-助力API(每人每天三次助力机会)
- */
-async function lotteryMasterHelp() {
-  $.lotteryMasterHelpRes = await request(`initForFarm`, {
-    imageUrl: "",
-    nickName: "",
-    shareCode: arguments[0] + '-3',
-    babelChannel: "3",
-    version: 4,
-    channel: 1
-  });
-}
-
-//领取5人助力后的额外奖励API
-async function masterGotFinishedTaskForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.masterGotFinished = await request(functionId);
-}
-//助力好友信息API
-async function masterHelpTaskInitForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.masterHelpResult = await request(functionId);
-}
-//新版助力好友信息API
-async function farmAssistInit() {
-  const functionId = arguments.callee.name.toString();
-  $.farmAssistResult = await request(functionId, {"version":14,"channel":1,"babelChannel":"120"});
-}
-//新版领取助力奖励API
-async function receiveStageEnergy() {
-  const functionId = arguments.callee.name.toString();
-  $.receiveStageEnergy = await request(functionId, {"version":14,"channel":1,"babelChannel":"120"});
-}
-//接受对方邀请,成为对方好友的API
-async function inviteFriend() {
-  $.inviteFriendRes = await request(`initForFarm`, {
-    imageUrl: "",
-    nickName: "",
-    shareCode: arguments[0] + '-inviteFriend',
-    version: 4,
-    channel: 2
-  });
-}
-// 助力好友API
-async function masterHelp() {
-  $.helpResult = await request(`initForFarm`, {
-    imageUrl: "",
-    nickName: "",
-    shareCode: arguments[0],
-    babelChannel: "3",
-    version: 2,
-    channel: 1
-  });
-}
-/**
- * 水滴雨API
- */
-async function waterRainForFarm() {
-  const functionId = arguments.callee.name.toString();
-  const body = { "type": 1, "hongBaoTimes": 100, "version": 3 };
-  $.waterRain = await request(functionId, body);
-}
-/**
- * 打卡领水API
- */
-async function clockInInitForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.clockInInit = await request(functionId);
-}
-
-// 连续签到API
-async function clockInForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.clockInForFarmRes = await request(functionId, { "type": 1 });
-}
-
-//关注，领券等API
-async function clockInFollowForFarm(id, type, step) {
-  const functionId = arguments.callee.name.toString();
-  let body = {
-    id,
-    type,
-    step
-  }
-  if (type === 'theme') {
-    if (step === '1') {
-      $.themeStep1 = await request(functionId, body);
-    } else if (step === '2') {
-      $.themeStep2 = await request(functionId, body);
+        if (strShareCode) {
+            console.log(`\n`+strShareCode);
+            newShareCodes.push(strShareCode)
+        } else {
+            console.log(`农场黑号了，赶紧多买买吧`);
+        }
+    } catch (e) {
+        $.logErr(e);
     }
-  } else if (type === 'venderCoupon') {
-    if (step === '1') {
-      $.venderCouponStep1 = await request(functionId, body);
-    } else if (step === '2') {
-      $.venderCouponStep2 = await request(functionId, body);
-    }
-  }
 }
-
-// 领取连续签到7天的惊喜礼包API
-async function gotClockInGift() {
-  $.gotClockInGiftRes = await request('clockInForFarm', { "type": 2 })
-}
-
-//定时领水API
-async function gotThreeMealForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.threeMeal = await request(functionId);
-}
-/**
- * 浏览广告任务API
- * type为0时, 完成浏览任务
- * type为1时, 领取浏览任务奖励
- */
-async function browseAdTaskForFarm(advertId, type) {
-  const functionId = arguments.callee.name.toString();
-  if (type === 0) {
-    $.browseResult = await request(functionId, {advertId, type});
-  } else if (type === 1) {
-    $.browseRwardResult = await request(functionId, {advertId, type});
-  }
-}
-// 被水滴砸中API
-async function gotWaterGoalTaskForFarm() {
-  $.goalResult = await request(arguments.callee.name.toString(), { type: 3 });
-}
-//签到API
-async function signForFarm() {
-  const functionId = arguments.callee.name.toString();
-  $.signResult = await request(functionId);
-}
-/**
- * 初始化农场, 可获取果树及用户信息API
- */
 async function initForFarm() {
   return new Promise(resolve => {
     const option = {
@@ -432,12 +263,6 @@ async function initForFarm() {
   })
 }
 
-// 初始化任务列表API
-async function taskInitForFarm() {
-  console.log('\n初始化任务列表')
-  const functionId = arguments.callee.name.toString();
-  $.farmTask = await request(functionId, { "version": 14, "channel": 1, "babelChannel": "120" });
-}
 //获取好友列表API
 async function friendListInitForFarm() {
   $.friendList = await request('friendListInitForFarm', { "version": 4, "channel": 1 });
@@ -447,40 +272,6 @@ async function friendListInitForFarm() {
 async function awardInviteFriendForFarm() {
   $.awardInviteFriendRes = await request('awardInviteFriendForFarm');
 }
-//为好友浇水API
-async function waterFriendForFarm(shareCode) {
-  const body = { "shareCode": shareCode, "version": 6, "channel": 1 }
-  $.waterFriendForFarmRes = await request('waterFriendForFarm', body);
-}
-async function showMsg() {
-  if ($.isNode() && process.env.FRUIT_NOTIFY_CONTROL) {
-    $.ctrTemp = `${process.env.FRUIT_NOTIFY_CONTROL}` === 'false';
-  } else if ($.getdata('jdFruitNotify')) {
-    $.ctrTemp = $.getdata('jdFruitNotify') === 'false';
-  } else {
-    $.ctrTemp = `${jdNotify}` === 'false';
-  }
-  if ($.ctrTemp) {
-    $.msg($.name, subTitle, message, option);
-    if ($.isNode()) {
-      allMessage += `${subTitle}\n${message}${$.index !== cookiesArr.length ? '\n\n' : ''}`;
-      // await notify.sendNotify(`${$.name} - 账号${$.index} - ${$.nickName}`, `${subTitle}\n${message}`);
-    }
-  } else {
-    $.log(`\n${message}\n`);
-  }
-}
-
-function timeFormat(time) {
-  let date;
-  if (time) {
-    date = new Date(time)
-  } else {
-    date = new Date();
-  }
-  return date.getFullYear() + '-' + ((date.getMonth() + 1) >= 10 ? (date.getMonth() + 1) : '0' + (date.getMonth() + 1)) + '-' + (date.getDate() >= 10 ? date.getDate() : '0' + date.getDate());
-}
-
 function requireConfig() {
   return new Promise(resolve => {
     console.log('开始获取配置文件\n')
@@ -544,7 +335,7 @@ function TotalBean() {
     })
   })
 }
-function request(function_id, body = {}, timeout = 1000) {
+function request(function_id, body = {}, timeout = 2000) {
   return new Promise(resolve => {
     setTimeout(() => {
       $.get(taskUrl(function_id, body), (err, resp, data) => {
