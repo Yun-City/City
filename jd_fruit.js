@@ -66,14 +66,12 @@ async function jdFruit() {
             await masterHelpShare(); //助力好友
 			await turntableFarm();//天天抽奖得好礼
             if ($.farmInfo.treeState === 2 || $.farmInfo.treeState === 3) {
-                option['open-url'];
                 //$.msg($.name, ``, `【京东账号${$.index}】${$.nickName || $.UserName}\n【提醒⏰】${$.farmInfo.farmUserPro.name}已可领取\n请去京东APP或微信小程序查看\n点击弹窗即达`, option);
                 return
             } else if ($.farmInfo.treeState === 1) {
                 //console.log(`\n${$.farmInfo.farmUserPro.name}种植中...\n`)
             } else if ($.farmInfo.treeState === 0) {
                 //已下单购买, 但未开始种植新的水果
-                option['open-url'];
                 //$.msg($.name, ``, `【京东账号${$.index}】 ${$.nickName || $.UserName}\n【提醒⏰】您忘了种植新的水果\n请去京东APP或微信小程序选购并种植新的水果\n点击弹窗即达`, option);
                 return
             }
