@@ -143,7 +143,7 @@ async function turntableFarm() {
         console.log(`天天抽奖：${lotteryResult.substr(0, lotteryResult.length - 1)}\n`)
       }
     }  else {
-      console.log('抽奖完成没有次数啦~')
+     // console.log('抽奖完成没有次数啦~')
     }
   } else {
     console.log('初始化天天抽奖得好礼失败')
