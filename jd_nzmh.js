@@ -1,22 +1,24 @@
 /*
 女装盲盒
+活动时间：2022-2-1至2022-2-28
+活动地址：https://anmp.jd.com/babelDiy/Zeus/3ZHWXfEDpu5GyX1BgCEN3qQwrC4K/index.html
 活动入口：京东app-女装馆-赢京豆
 已支持IOS双京东账号,Node.js支持N个京东账号
 脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
 ============Quantumultx===============
 [task_local]
 #女装盲盒
-35 1,23 * * * https://raw.githubusercontent.com/KingRan/JDJB/main/jd_nzmh.js, tag=女装盲盒, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+35 1,23 * * * h, tag=女装盲盒, img-url=h, enabled=true
 
 ================Loon==============
 [Script]
-cron "35 1,23 * * *" script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_nzmh.js,tag=女装盲盒
+cron "35 1,23 * * *" script-path=,tag=女装盲盒
 
 ===============Surge=================
-女装盲盒 = type=cron,cronexp="35 1,23 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_nzmh.js
+女装盲盒 = type=cron,cronexp="35 1,23 * * *",wake-system=1,timeout=3600,script-path=
 
 ============小火箭=========
-女装盲盒 = type=cron,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_nzmh.js, cronexpr="35 1,23 * * *", timeout=3600, enable=true
+女装盲盒 = type=cron,script-path=hjs, cronexpr="35 1,23 * * *", timeout=3600, enable=true
  */
 const $ = new Env('女装盲盒抽京豆');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -38,8 +40,8 @@ if ($.isNode()) {
     return;
   }
   console.log('女装盲盒\n' +
-      '活动时间：2022-1-29至2022-2-28\n' +
-      '活动地址：https://anmp.jd.com/babelDiy/Zeus/3ZHWXfEDpu5GyX1BgCEN3qQwrC4K/index.html');
+      '活动时间：2022-3-1至2022-3-31\n' +
+      '活动地址：https://anmp.jd.com/babelDiy/Zeus/3z12ngsd27UR1KfRqdMrMSSg3uxg/index.html');
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       cookie = cookiesArr[i];
@@ -59,7 +61,7 @@ if ($.isNode()) {
         continue
       }
       try {
-        await jdMh('https://anmp.jd.com/babelDiy/Zeus/3ZHWXfEDpu5GyX1BgCEN3qQwrC4K/index.html')
+        await jdMh('https://anmp.jd.com/babelDiy/Zeus/3z12ngsd27UR1KfRqdMrMSSg3uxg/index.html')
       } catch (e) {
         $.logErr(e)
       }
@@ -208,8 +210,8 @@ function taskUrl(function_id, body = '') {
       'Accept-Language': 'zh-cn',
       'Content-Type': 'application/json;charset=utf-8',
       'Origin': 'wq.jd.com',
-      'User-Agent': 'JD4iPhone/167490 (iPhone; iOS 14.2; Scale/3.00)',
-      'Referer': `https://anmp.jd.com/babelDiy/Zeus/2x36jyruNVDWxUiAiGAgHRrkqVX2/index.html?wxAppName=jd`,
+      'User-Agent': 'JD4iPhone/167963 (iPhone; iOS 14.6; Scale/3.00)',
+      'Referer': `https://anmp.jd.com/babelDiy/Zeus/xKACpgVjVJM7zPKbd5AGCij5yV9/index.html?wxAppName=jd`,
       'Cookie': cookie
     }
   }
