@@ -16,7 +16,7 @@ let min: number[] = [0.02, 0.12, 0.3, 0.6, 0.7, 0.8, 1, 2], log: string = '', lo
 !(async () => {
   let cookiesArr: string[] = await requireConfig(false);
   for (let [index, value] of cookiesArr.entries()) {
-	if(index < 7){
+	if(index < 1){
     try {
 	  cookie = value;
       UserName = decodeURIComponent(cookie.match(/pt_pin=([^;]*)/)![1])
@@ -80,7 +80,7 @@ let min: number[] = [0.02, 0.12, 0.3, 0.6, 0.7, 0.8, 1, 2], log: string = '', lo
   }
 
   for (let [index, value] of cookiesArr.entries()) {
-	if(index < 7){	
+	if(index < 1){	
 	try {
       cookie = value
       UserName = decodeURIComponent(cookie.match(/pt_pin=([^;]*)/)![1])
@@ -88,52 +88,6 @@ let min: number[] = [0.02, 0.12, 0.3, 0.6, 0.7, 0.8, 1, 2], log: string = '', lo
       UA = `jdltapp;iPhone;3.1.0;${Math.ceil(Math.random() * 4 + 10)}.${Math.ceil(Math.random() * 4)};${randomString(40)}`
       log = logs[getRandomNumberByRange(0, logs.length - 1)]
       let random = log.match(/"random":"(\d+)"/)[1], log1 = log.match(/"log":"(.*)"/)[1]
-      // 做任务
-      /*
-      res = await api('taskHomePage', {})
-      await wait(1000)
-      for (let t of res.data.result.taskInfos) {
-        if (!t.alreadyReceivedCount || t.alreadyReceivedCount < t.requireCount) {
-          if ([2, 3, 4, 5, 8].includes(t.taskType)) {
-            res = await api('startTask', {"taskType": t.taskType, "random": getRandomNumberByRange(36135846, 74613584), "log": `${Date.now()}~1orj8k3`, "sceneid": "JLHBhPageh5"})
-            console.log(t.title, res.data.biz_msg)
-            await wait(1000)
-            res = await api('getTaskDetailForColor', {taskType: t.taskType})
-            await wait(1000)
-            for (let tp of res.data.result.advertDetails) {
-              if (tp.status === 0) {
-                res = await api('taskReportForColor', {"taskType": t.taskType, "detailId": tp.id})
-                console.log(t.title, tp.name, res.data.biz_msg)
-                await wait(1000)
-              }
-            }
-          }
-        }
-        if (t.innerStatus === 3) {
-          res = await api('h5receiveRedpacketAll', {"taskType": t.taskType, "random": getRandomNumberByRange(36135846, 74613584), "log": `${Date.now()}~138q6w6`, "sceneid": "JLHBhPageh5"})
-          console.log(`${t.title} 打开成功，获得`, parseFloat(res.data.result.discount))
-          if (!min.includes(parseFloat(res.data.result.discount)))
-            await sendNotify(`锦鲤红包`, `账号${index + 1} ${UserName}\n${res.data.result.discount}`)
-          await wait(1000)
-        }
-      }
-      await wait(1000)
-
-
-      // 打开任务红包
-      res = await api('taskHomePage', {})
-      await wait(1000)
-      for (let t of res.data.result.taskInfos) {
-        if (t.innerStatus === 3) {
-          res = await api('h5receiveRedpacketAll', {"taskType": t.taskType, "random": getRandomNumberByRange(36135846, 74613584), "log": `${Date.now()}~138q6w6`, "sceneid": "JLHBhPageh5"})
-          console.log(`${t.title} 打开成功，获得`, parseFloat(res.data.result.discount))
-          if (!min.includes(parseFloat(res.data.result.discount)))
-            await sendNotify(`锦鲤红包`, `账号${index + 1} ${UserName}\n${res.data.result.discount}`)
-          await wait(1000)
-        }
-      }
-      await wait(2000)
-       */
 
       // 打开助力红包
       let j: number = 1
