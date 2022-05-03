@@ -1,7 +1,4 @@
 /*
- * @Author: X1a0He
- * @Contact: https://t.me/X1a0He
- * @Github: https://github.com/X1a0He/jd_scripts_fixed
  * 清空购物车，支持环境变量设置关键字，用@分隔，使用前请认真看对应注释
  * 由于不是用app来进行购物车删除，所以可能会出现部分购物车数据无法删除的问题，例如预购商品，属于正常
  */
@@ -22,7 +19,7 @@ let args_xh = {
      * 控制脚本是否执行，设置为true时才会执行删除购物车 
      * 环境变量名称：JD_CART
      */
-    clean: process.env.JD_CART === 'true' || true,
+    clean: process.env.JD_CART_REMOVE === 'true' || false,
     /*
      * 控制脚本运行一次取消多少条购物车数据，为0则不删除，默认为100
      * 环境变量名称：XH_CLEAN_REMOVESIZE
@@ -34,8 +31,7 @@ let args_xh = {
      */
     keywords: process.env.XH_CLEAN_KEYWORDS && process.env.XH_CLEAN_KEYWORDS.split('@') || [],
 }
-console.log('使用前请确保你认真看了注释，看完注释有问题就带着你的问题来找我')
-console.log('tg: https://t.me/X1a0He')
+console.log('有问题请先看一遍注释')
 console.log('=====环境变量配置如下=====')
 console.log(`except: ${typeof args_xh.except}, ${args_xh.except}`)
 console.log(`clean: ${typeof args_xh.clean}, ${args_xh.clean}`)
@@ -61,15 +57,15 @@ if ($.isNode()) {
                 cookie = cookiesArr[i];
                 $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
                 $.index = i + 1;
-                $.isLogin = true;
-                $.nickName = '';
-                $.error = false;
-                await TotalBean();
                 console.log(`****开始【京东账号${$.index}】${$.nickName || $.UserName}****`);
                 if (args_xh.except.includes($.UserName)) {
                     console.log(`跳过账号：${$.nickName || $.UserName}`)
                     continue
                 }
+                $.isLogin = true;
+                $.nickName = '';
+                $.error = false;
+                await TotalBean();
                 if (!$.isLogin) {
                     $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, {
                         "open-url": "https://bean.m.jd.com/bean/signIndex.action"
@@ -91,11 +87,11 @@ if ($.isNode()) {
                             break;
                         }
                     } else break;
-                } while (!$.error && $.keywordsNum !== parseInt($.beforeRemove))
+                } while (!$.error || $.keywordsNum !== $.beforeRemove)
             }
         }
     } else {
-        console.log("你设置了不删除购物车数据，要删除请设置环境变量 JD_CART 为 true")
+        console.log("默认不删除购物车，要删除请设置环境变量 JD_CART_REMOVE 为 true")
     }
 })().catch((e) => {
     $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -115,13 +111,16 @@ function getCart_xh() {
         }
         $.get(option, async (err, resp, data) => {
             try {
-                let content = getSubstr(data, "window.cartData = ", "window._PFM_TIMING").replace(/\s*/g, "");
-                data = JSON.parse(content);
+                data = getSubstr(data, "window.cartData = ", "window._PFM_TIMING");
+                data = data.replace(' ;', '');
+                data = data.replace(/\s+/g,'');
+                data = JSON.parse(data);
+
                 $.areaId = data.areaId;   // locationId的传值
                 $.traceId = data.traceId; // traceid的传值
                 venderCart = data.cart.venderCart;
                 postBody = 'pingouchannel=0&commlist=';
-                $.beforeRemove = data.cartJson.num
+                $.beforeRemove = data.cart.currentCount ? data.cart.currentCount : 0;
                 console.log(`获取到购物车数据 ${$.beforeRemove} 条`)
             } catch (e) {
                 $.logErr(e, resp);
