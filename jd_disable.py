@@ -20,8 +20,15 @@ logger.addHandler(logging.StreamHandler())  # 添加控制台日志
 # logger.addHandler(logging.FileHandler(filename="text.log", mode="w"))  # 添加文件日志
 
 
-ip = "localhost"
-sub_str = os.getenv("RES_SUB", "Aaron-lv_sync")
+ipport = os.getenv("IPPORT")
+if not ipport:
+    logger.info(
+        "如果报错请在环境变量中添加你的真实 IP:端口\n名称：IPPORT\t值：127.0.0.1:5700\n或在 config.sh 中添加 export IPPORT='127.0.0.1:5700'"
+    )
+    ipport = "localhost:5700"
+else:
+    ipport = ipport.lstrip("http://").rstrip("/")
+sub_str = os.getenv("RES_SUB", "KingRan_KR")
 sub_list = sub_str.split("&")
 res_only = os.getenv("RES_ONLY", True)
 headers = {
@@ -36,9 +43,9 @@ def load_send() -> None:
     send = None
     cur_path = os.path.abspath(os.path.dirname(__file__))
     sys.path.append(cur_path)
-    if os.path.exists(cur_path + "/sendNotify.py"):
+    if os.path.exists(cur_path + "/notify.py"):
         try:
-            from sendNotify import send
+            from notify import send
         except Exception:
             send = None
             logger.info(f"❌加载通知服务失败!!!\n{traceback.format_exc()}")
@@ -47,7 +54,7 @@ def load_send() -> None:
 def get_tasklist() -> list:
     tasklist = []
     t = round(time.time() * 1000)
-    url = f"http://{ip}:5700/api/crons?searchValue=&t={t}"
+    url = f"http://{ipport}/api/crons?searchValue=&t={t}"
     response = requests.get(url=url, headers=headers)
     datas = json.loads(response.content.decode("utf-8"))
     if datas.get("code") == 200:
@@ -83,7 +90,10 @@ def get_duplicate_list(tasklist: list) -> tuple:
     names = []
     cmds = []
     for task in tasklist:
-        ids.append(task.get("_id"))
+        if flag1:
+            ids.append(task.get("_id"))
+        else:
+            ids.append(task.get("id"))
         names.append(task.get("name"))
         cmds.append(task.get("command"))
 
@@ -123,7 +133,10 @@ def reserve_task_only(
     for task1 in tem_tasks:
         for task2 in res_list:
             if task1.get("name") == task2.get("name"):
-                dup_ids.append(task1.get("_id"))
+                if flag1:
+                    dup_ids.append(task1.get("_id"))
+                else:
+                    dup_ids.append(task1.get("id"))
                 logger.info(f"【✅保留】{task2.get('command')}")
                 task3 = task1
         if task3:
@@ -135,7 +148,7 @@ def reserve_task_only(
 
 def disable_duplicate_tasks(ids: list) -> None:
     t = round(time.time() * 1000)
-    url = f"http://{ip}:5700/api/crons/disable?t={t}"
+    url = f"http://{ipport}/api/crons/disable?t={t}"
     data = json.dumps(ids)
     headers["Content-Type"] = "application/json;charset=UTF-8"
     response = requests.put(url=url, headers=headers, data=data)
@@ -147,8 +160,14 @@ def disable_duplicate_tasks(ids: list) -> None:
 
 
 def get_token() -> str or None:
+    path = '/ql/config/auth.json'  # 设置青龙 auth文件地址
+    global flag1
+    flag1 = True
+    if not os.path.isfile(path):
+        path = '/ql/data/config/auth.json'  # 尝试设置青龙 auth 新版文件地址
+        flag1 = False
     try:
-        with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except Exception:
         logger.info(f"❌无法获取 token!!!\n{traceback.format_exc()}")
@@ -189,5 +208,5 @@ if __name__ == "__main__":
         logger.info("😁没有重复任务~")
     else:
         disable_duplicate_tasks(ids)
-    if send:
-        send("💖禁用重复任务成功", f"\n{sum}\n{filter}\n{disable}")
+    #if send:
+        #send("💖禁用重复任务成功", f"\n{sum}\n{filter}\n{disable}")

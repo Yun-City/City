@@ -1,5 +1,5 @@
 /*
-cron "30 * * * *" jd_CheckCK.js, tag:京东CK检测by-ccwav
+cron "30 2-22/2 * * *" jd_CheckCK.js, tag:京东CK检测by-ccwav
  */
 //详细说明参考 https://github.com/ccwav/QLScript2.
 const $ = new Env('京东CK检测');
@@ -9,6 +9,7 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const got = require('got');
 const {
     getEnvs,
+	getEnvById,
     DisableCk,
     EnableCk,
     getstatus
@@ -116,12 +117,12 @@ if ($.isNode() && process.env.CHECKCK_CKNOWARNERROR) {
 
 if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
 
-    var strTempNotify = process.env.CHECKCK_ALLNOTIFY ? process.env.CHECKCK_ALLNOTIFY.split('&') : [];
-    if (strTempNotify.length > 0) {
+    strAllNotify = process.env.CHECKCK_ALLNOTIFY;
+/*     if (strTempNotify.length > 0) {
         for (var TempNotifyl in strTempNotify) {
             strAllNotify += strTempNotify[TempNotifyl] + '\n';
         }
-    }
+    } */
     console.log(`检测到设定了温馨提示,将在推送信息中置顶显示...`);
     strAllNotify = `\n【✨✨✨✨温馨提示✨✨✨✨】\n` + strAllNotify;
     console.log(strAllNotify);
@@ -137,8 +138,15 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
     }
 
     for (let i = 0; i < envs.length; i++) {
-        if (envs[i].value) {
-            cookie = envs[i].value;
+        if (envs[i].value) {			
+			var tempid=0;
+			if(envs[i]._id){
+				tempid=envs[i]._id;
+			}
+			if(envs[i].id){
+				tempid=envs[i].id;
+			}
+            cookie = await getEnvById(tempid);				
             $.UserName = (cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
             $.UserName2 = decodeURIComponent($.UserName);
             $.index = i + 1;
@@ -206,14 +214,14 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
                 TempOErrorMessage = $.error;
 
             } else {
-                const strnowstatus = await getstatus(envs[i]._id);
+                const strnowstatus = await getstatus(tempid);
                 if (strnowstatus == 99) {
                     strnowstatus = envs[i].status;
                 }
                 if (!$.isLogin) {
 
                     if (strnowstatus == 0) {
-                        const DisableCkBody = await DisableCk(envs[i]._id);
+                        const DisableCkBody = await DisableCk(tempid);
                         if (DisableCkBody.code == 200) {
                             if ($.isNode() && WP_APP_TOKEN_ONE) {
                                 strNotifyOneTemp = `京东账号: ${$.nickName || $.UserName2} 已失效,自动禁用成功!\n如果要继续挂机，请联系管理员重新登录账号，账号有效期为30天.`
@@ -247,7 +255,7 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
                     if (strnowstatus == 1) {
 
                         if (CKAutoEnable == "true") {
-                            const EnableCkBody = await EnableCk(envs[i]._id);
+                            const EnableCkBody = await EnableCk(tempid);
                             if (EnableCkBody.code == 200) {
                                 if ($.isNode() && WP_APP_TOKEN_ONE) {
                                     await notify.sendNotifybyWxPucher(`${$.name}`, `京东账号: ${$.nickName || $.UserName2} 已恢复,自动启用成功!\n祝您挂机愉快...`, `${$.UserName2}`);

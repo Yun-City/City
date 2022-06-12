@@ -1,8 +1,7 @@
 /**
- 特务Z
+ 特务Z，默认选择左边战队
  脚本没有自动开卡，会尝试领取开卡奖励
- cron 23 8,11,20 * * * https://raw.githubusercontent.com/star261/jd/main/scripts/jd_productZ4Brand.js
- 一天要跑2次
+1 2,14,20 * * * jd_superBrand.js
  */
 const $ = new Env('特务Z');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -116,13 +115,13 @@ async function doTask(){
             console.log(`任务：${$.oneTask.assignmentName}，已完成`);
             continue;
         }
-        if($.oneTask.assignmentType === 3 || $.oneTask.assignmentType === 0 || $.oneTask.assignmentType === 7){
+        if($.oneTask.assignmentType === 3 || $.oneTask.assignmentType === 0 || $.oneTask.assignmentType === 1 || $.oneTask.assignmentType === 7){
             if($.oneTask.assignmentType === 7){
                 console.log(`任务：${$.oneTask.assignmentName}，尝试领取开卡奖励；（不会自动开卡，如果你已经是会员，则会领取成功）`);
             }else{
                 console.log(`任务：${$.oneTask.assignmentName}，去执行`);
             }
-            let subInfo = $.oneTask.ext.followShop || $.oneTask.ext.brandMemberList || '';
+            let subInfo = $.oneTask.ext.followShop || $.oneTask.ext.brandMemberList || $.oneTask.ext.shoppingActivity ||'';
             if(subInfo && subInfo[0]){
                 $.runInfo = subInfo[0];
             }else{
@@ -145,17 +144,17 @@ async function doTask(){
             if (signList.length === 0) {
                 console.log(`任务：${$.oneTask.assignmentName},信息异常`);
             }
-            if ($.oneTask.assignmentName.indexOf('首页下拉') !== -1) {
-                for (let j = 0; j < signList.length; j++) {
-                    if (signList[j].status === 1) {
-                        console.log(`任务：${$.oneTask.assignmentName},去执行,请稍稍`);
-                        let itemId = signList[j].itemId;
-                        $.runInfo = {'itemId':itemId};
-                        await takeRequest('superBrandDoTask');
-                        await $.wait(3000);
-                    }
+            //if ($.oneTask.assignmentName.indexOf('首页下拉') !== -1) {
+            for (let j = 0; j < signList.length; j++) {
+                if (signList[j].status === 1) {
+                    console.log(`任务：${$.oneTask.assignmentName},去执行,请稍稍`);
+                    let itemId = signList[j].itemId;
+                    $.runInfo = {'itemId':itemId};
+                    await takeRequest('superBrandDoTask');
+                    await $.wait(3000);
                 }
             }
+            //}
         }
     }
 }

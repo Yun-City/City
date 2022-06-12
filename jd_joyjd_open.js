@@ -1,19 +1,38 @@
-
 /*
-#jd_joyjd_open通用ID任务，多个活动用@连接，任务连接https://jdjoy.jd.com/module/task/v2/doTask
+JoyJd任务脚本
+已支持IOS双京东账号,Node.js支持N个京东账号
+脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
+jd_joyjd_open通用ID任务，多个活动用@连接，任务连接https://jdjoy.jd.com/module/task/v2/doTask
 export comm_activityIDList="af2b3d56e22d43afa0c50622c45ca2a3"  
 export comm_endTimeList="1639756800000"
 export comm_tasknameList="京东工业品抽奖"
 
 即时任务，无需cron,短期或者长期请参考活动规则设置cron
+============Quantumultx===============
+[task_local]
+#JoyJd任务脚本
+5 2,18 * * * https://raw.githubusercontent.com/KingRan/JDJB/main/jd_joyjd_open.js, tag=JoyJd任务脚本, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+
+================Loon==============
+[Script]
+cron "5 2,18 * * *" script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_joyjd_open.js,tag=JoyJd任务脚本
+
+===============Surge=================
+JoyJd任务脚本 = type=cron,cronexp="5 2,18 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_joyjd_open.js
+
+============小火箭=========
+JoyJd任务脚本 = type=cron,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_joyjd_open.js, cronexpr="5 2,18 * * *", timeout=3600, enable=true
 */
-const $ = new Env('jd_joyjd_open通用ID任务');
+const $ = new Env('JoyJd任务脚本');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 let cookiesArr = [];
 let activityIDList = '';     
 let endTimeList = '';
 let tasknameList = '';
+let activityIDArr = [];     
+let endTimeArr = [];
+let tasknameArr = [];
 let activityID = '', endTime = '', taskname = '';
 $.UA = '';
 if ($.isNode()) {
@@ -37,10 +56,7 @@ if ($.isNode()) {
     }
     if (!activityIDList) {
         $.log(`没有通用ID任务，尝试获取远程`);
-        let data = await getData("https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/joyjd_open.json")
-        if (!data) {
-            data = await getData("https://raw.githubusercontent.com/Yun-City/City/main/shareCodes/joyjd_open.json")
-        }
+        let data = await getData("https://cdn.jsdelivr.net/gh/KingRan/shareCodes@master/joyjd_open.json")
         if (data.activityIDList && data.activityIDList.length) {
             $.log(`获取到远程且有数据`);
             activityIDList = data.activityIDList.join('@')

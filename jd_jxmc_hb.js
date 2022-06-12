@@ -1,6 +1,6 @@
 /**
  惊喜牧场
- cron 23 0-23/3 * * * https://raw.githubusercontent.com/333333/jd/main/scripts/jd_jxmc.js
+ cron 23 0-23/3 * * * https://raw.githubusercontent.com/star261/jd/main/scripts/jd_jxmc.js
  */
 // prettier-ignore
 !function (t, r) { "object" == typeof exports ? module.exports = exports = r() : "function" == typeof define && define.amd ? define([], r) : t.CryptoJS = r() }(this, function () {
@@ -19,7 +19,7 @@ $.inviteCodeList = [];
 $.inviteCodeList_hb = [];
 let flag_hb = true
 let cookiesArr = [];
-$.appId = 10028;
+$.appId = "00df8";
 $.helpCkList = [];
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
@@ -60,7 +60,7 @@ let token ='';
     await pasture();
     await $.wait(2000);
   }
-  if (flag_hb) {
+  if (process.env.JXMC_RP != 'false' && flag_hb) {
   console.log('\n##################开始账号内互助(红包)#################\n');
   await getShareCode('jxmc_hb.json')
   $.inviteCodeList_hb = [...($.inviteCodeList_hb || []), ...($.shareCode || [])]
@@ -547,7 +547,7 @@ async function requestAlgo() {
       "expandParams": ""
     })
   }
-  new Promise(async resolve => {
+  return new Promise(async resolve => {
     $.post(options, (err, resp, data) => {
       try {
         if (err) {

@@ -1,150 +1,64 @@
-## 重要通知
-### 落日与孤鹜齐飞,秋水共长天一色。
-收集全网目前能正常使用的脚本。
+# 前言(必看)
+## 频道：https://t.me/KingRan521
+君子慎独，不欺暗室， 卑以自牧，含章可贞。 
+
+大丈夫立于天地之间， 当仰天地浩然正气， 行光明磊落之事。 
+
+克己，慎独，守心，明性。 
+
+以克人之心克己， 以容己之心容人。
+
+言尽于此，不想解释也不想回答！！！
+
+建议不要使用本库。免生是非！！！
+
+建议不要使用本库。免生是非！！！
+
+建议不要使用本库。免生是非！！！
+
+#### 无互助池，无需配置互助码，账号之间内部互助。
+
+### 目前有加密的如下（不放心请禁用）
+
+1.jd_zdjr.js   （组队瓜分）
+
+2.jd_cjzdgf.js （组队瓜分）
+
+3.jd_zjd.js   （赚京豆）
+
+4.jd_fan.js  （粉丝互动）
+
+5.jd_js_sign.js （极速版签到提现）
+
+6.jd_jx_sign.js （京东-京喜双签）
+
+7.jd_computer.js （电脑配件通用任务）
+
+#### 另外涉及开卡均有部分加密。
 
 
-【集合仓库拉取命令】
-``` 
-ql repo https://ghproxy.com/https://github.com/Yun-City/City.git "jd_|jx_|gua_|jddj_|getJDCookie" "activity|backUp" "^jd[^_]|USER|function|utils|sendnotify|ZooFaker_Necklace|jd_Cookie|JDJRValidator_|sign_graphics_validate|ql|magic|cleancart_activity"
-```
+### 拉取(js py ts)青龙 config.sh 文件中修改
 
-【安装docker、安装2.9.3青龙、配置本仓库】
+ql repo命令拉取脚本时需要拉取的文件后缀，直接写文件后缀名即可
 
-```bash
-wget -q  https://raw.githubusercontents.com/buqian123/Tasks/main/ql.sh -O ql.sh && bash ql.sh
-```
+`RepoFileExtensions="js py ts"`
 
 
-【已安装青龙的用户一键配置代码 配置City仓库助力】
+### 腾讯云活动：
 
-```bash
-docker exec -it qqinglong bash -c "$(curl -fsSL  https://raw.githubusercontent.com/Yun-City/City/main/Shell/1customCDN.sh)"
-```
+2核2G4M/40RMB/一年，仅限新用户，一个实名可以注册3个新用户账号
 
-
-
-【青龙依赖一键配置】
-
-```bash
-docker exec -it qinglong bash -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Yun-City/City/main/Shell/QLOneKeyDependency.sh | sh)"
-```
-
-【量子一键配置】
-
-```bash
-bash <(curl -sL  http://jx.lim1.cn/onekey-install-liangzi.sh)
-```
-
-#### 说明
+抢购地址：https://sourl.cn/RFwHRZ
 
 
+### 取关店铺和商品 使用说明（待完善）
+通过设置变量`UN_SUBSCRIBES`来进行`商品一次性取消数量`, `店铺一次性取消数量`, `商品取关忽略列表`, `店铺取关忽略列表`四项内容的自定义设置，以'&'、回车或'\n'隔开。
 
-* 想跑gua开卡的可以加,false改成true
-    ```
-	export guaopencard_All="true" # 青蛙开卡总开关
-    export guaopencard_addSku_All="false" # 青蛙开卡加购
-    export guaopencardRun_All="true" # 青蛙开卡做任务
-    export guaopencard_draw="true" # 青蛙开卡抽奖
-	export guaopencard_rewardBean="1,2,3" # 京豆奖励判断 | 1=邀请 2=开卡 3=关注  | 填1,2,3
-    ```
-
-
- - 更新一个整库脚本
- ```
- ql repo <repourl> <path> <blacklist> <dependence> <branch>
- ```
-
- - 更新单个脚本文件
- ```
- ql raw <fileurl>
- ```
- 
-### 安装青龙需要一些的依赖
-<details>
-<summary>查看依赖列表</summary>
+|      设定项      |   类型   |            说明            | 示例                             |
+| :--------------: | :------: | :------------------------: | -------------------------------- |
+|  商品取消数/次   |   数字   |     默认20，为0不取消      | 20                               |
+|  店铺取消数/次   |   数字   |     默认20，为0不取消      | 19                               |
+| 商品取关忽略列表 | JSON数组 | 按商品详情页的商品编号设置 | ["100016814096", "100009667851"] |
+| 店铺取关忽略列表 | JSON数组 |       按店铺名关键字       | ["华硕", "丽台京东自营旗舰店"]   |
 
 
-* 最新青龙支持安装依赖需要啥依赖，去依赖管理添加即可，简单方便
-* 遇到Cannot find module 'xxxxxx'报错就进入青龙容器
-* docker exec -it QL(自己容器名) bash
-* pnpm install xxxxx(报错中引号里的复制过来)
-
- 
-
- 安装青龙的一些依赖，按需求安装
-* docker exec -it qinglong(自己容器名) bash -c "npm install -g typescript"
-
-* docker exec -it qinglong bash -c "npm install axios date-fns"
-
-* docker exec -it qinglong bash -c "npm install crypto -g"
-
-* docker exec -it qinglong bash -c "npm install png-js"
-
-* docker exec -it qinglong bash -c "npm install -g npm"
-
-* docker exec -it qinglong bash -c "pnpm i png-js"
-
-* docker exec -it qinglong bash -c "pip3 install requests"
-
-* docker exec -it qinglong bash -c "apk add --no-cache build-base g++ cairo-dev pango-dev giflib-dev && cd scripts && npm install canvas --build-from-source"
-
-* docker exec -it qinglong bash -c "apk add python3 zlib-dev gcc jpeg-dev python3-dev musl-dev freetype-dev"
-
-* docker exec -it qinglong bash -c "cd /ql/scripts/ && apk add --no-cache build-base g++ cairo-dev pango-dev giflib-dev && npm i && npm i -S ts-node typescript @types/node date-fns axios png-js canvas --build-from-source"
-
-或者
-
-* npm install -g png-js
-* npm install -g date-fns
-* npm install -g axios
-* npm install -g crypto-js
-* npm install -g ts-md5
-* npm install -g tslib
-* npm install -g @types/node
-* npm install -g requests
-
-</details>
-
-## Special statement:
-
-* Any unlocking and decryption analysis scripts involved in the Script project released by this warehouse are only used for testing, learning and research, and are forbidden to be used for commercial purposes. Their legality, accuracy, completeness and effectiveness cannot be guaranteed. Please make your own judgment based on the situation. .
-
-* All resource files in this project are forbidden to be reproduced or published in any form by any official account or self-media.
-
-* This warehouse is not responsible for any script problems, including but not limited to any loss or damage caused by any script errors.
-
-* Any user who indirectly uses the script, including but not limited to establishing a VPS or disseminating it when certain actions violate national/regional laws or related regulations, this warehouse is not responsible for any privacy leakage or other consequences caused by this.
-
-* Do not use any content of the Script project for commercial or illegal purposes, otherwise you will be responsible for the consequences.
-
-* If any unit or individual believes that the script of the project may be suspected of infringing on their rights, they should promptly notify and provide proof of identity and ownership. We will delete the relevant script after receiving the certification document.
-
-* Anyone who views this item in any way or directly or indirectly uses any script of the Script item should read this statement carefully. This warehouse reserves the right to change or supplement this disclaimer at any time. Once you have used and copied any relevant scripts or rules of the Script project, you are deemed to have accepted this disclaimer.
-
- **You must completely delete the above content from your computer or mobile phone within 24 hours after downloading.**  </br>
-> ***You have used or copied any script made by yourself in this warehouse, it is deemed to have accepted this statement, please read it carefully*** 
-
-
-## Special thanks to: new scripts actor
-* [@NobyDa](https://github.com/NobyDa)
-* [@Andy Woo](https://t.me/update_help_group)
-* [@cdle](https://github.com/cdle/carry)
-* [@FKPYW](https://github.com/FKPYW/dongge)
-* [@Smiek2121](https://github.com/smiek2121/scripts)
-* [@star261](https://github.com/star261/jd) 
-* [@kangwenhang](https://github.com/kangwenhang)
-* [@Oreo](https://github.com/Oreomeow)
-* [@yuannian1112](https://github.com/yuannian1112/jd_scripts.git)
-* [@shufflewzc](https://github.com/shufflewzc/faker2.git)
-* [@passerby-b](https://github.com/passerby-b/JDDJ.git)
-* [@he1pu](https://github.com/he1pu/JDHelp.git)
-* [@airacg](https://github.com/airacg/jd_task.git)
-* [@ccwav](https://github.com/ccwav/QLScript2.git)
-* [@Zy143L](https://github.com/Zy143L/wskey.git)
-* [@X1a0He](https://github.com/X1a0He/jd_scripts_fixed)
-* [@AlterGu](https://github.com/AlterGu/qinglong_note)
-* [@KingRan](https://github.com/KingRan/JD-Scripts)
-* [@Aaron-lv](https://github.com/Aaron-lv/sync)
-* [@zzfiu](https://github.com/zzfiu/jd.git)
-* [@zero205](https://github.com/zero205/JD_tencent_scf)
-* [@wuye999](https://github.com/wuye999/myScripts)

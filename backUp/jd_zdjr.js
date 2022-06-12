@@ -21,8 +21,8 @@ cron "40 11 * * *" script-path=jd_zdjr.js,tag=组队瓜分京豆
 
 */
 
-let jd_zdjr_activityId = ''// 活动ID
-let jd_zdjr_activityUrl = ''// 活动地址
+let jd_zdjr_activityId = '10b0ec8fb440470d8fc42af4a07ecefe'// 活动ID
+let jd_zdjr_activityUrl = 'https://lzkjdz-isv.isvjcloud.com'// 活动地址
 
 
 var _0xodx = 'jsjiami.com.v6',
