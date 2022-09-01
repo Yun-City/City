@@ -57,7 +57,7 @@ npm install -g npm png-js date-fns axios crypto-js ts-md5 tslib @types/node requ
 
 pnpm install -g js-base64 qrcode-terminal silly-datetime
 
-pip3 install requests aiohttp
+pip3 install requests aiohttp redis wget
 
 cd /ql/scripts/ && apk add --no-cache build-base g++ cairo-dev pango-dev giflib-dev && npm i && npm i -S ts-node typescript @types/node date-fns axios png-js canvas --build-from-source
 cd /ql
