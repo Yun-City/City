@@ -39,8 +39,8 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
             lnrun++;
             await shareCodesFormat();
             await jdFruit();
-            if (lnrun == 15) {
-                console.log(`\n访问接口次数达到15次，休息60秒.....\n`);
+            if (lnrun == 10) {
+                console.log(`\n访问接口次数达到10次，休息60秒.....\n`);
                 await $.wait(60 * 1000);
                 lnrun = 0;
             }
@@ -231,6 +231,8 @@ async function lotteryForTurntableFarm() {
  * 天天抽奖拿好礼-助力API(每人每天三次助力机会)
  */
 async function lotteryMasterHelp() {
+    await $.wait(3000);
+    console.log('等待了3秒');
     $.lotteryMasterHelpRes = await request(`initForFarm`, {
         imageUrl: "",
         nickName: "",
@@ -242,6 +244,8 @@ async function lotteryMasterHelp() {
 }
 // 助力好友API
 async function masterHelp() {
+    await $.wait(3000);
+    console.log('等待了3秒');
     $.helpResult = await request(`initForFarm`, {
         imageUrl: "",
         nickName: "",
@@ -294,25 +298,6 @@ async function initForFarm() {
             }
         })
     })
-}
-
-async function showMsg() {
-    if ($.isNode() && process.env.FRUIT_NOTIFY_CONTROL) {
-        $.ctrTemp = `${process.env.FRUIT_NOTIFY_CONTROL}` === 'false';
-    } else if ($.getdata('jdFruitNotify')) {
-        $.ctrTemp = $.getdata('jdFruitNotify') === 'false';
-    } else {
-        $.ctrTemp = `${jdNotify}` === 'false';
-    }
-    if ($.ctrTemp) {
-        $.msg($.name, subTitle, message, option);
-        if ($.isNode()) {
-            allMessage += `${subTitle}\n${message}${$.index !== cookiesArr.length ? '\n\n' : ''}`;
-            // await notify.sendNotify(`${$.name} - 账号${$.index} - ${$.nickName || $.UserName}`, `${subTitle}\n${message}`);
-        }
-    } else {
-        $.log(`\n${message}\n`);
-    }
 }
 
 function timeFormat(time) {
