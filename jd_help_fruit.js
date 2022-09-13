@@ -2,7 +2,7 @@
 #City脚本配置
 cron "45 0,18 * * *" jd_fruit.js, tag:东东农场助力
 */
-const $ = new Env('东东农场助力码获取');
+const $ = new Env('东东农场助力');
 let cookiesArr = [], cookie = '', notify, newShareCodes, allMessage = '';
 let shareCodes = ['']
 let message = '', subTitle = '', option = {}
