@@ -37,7 +37,7 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
             option = {};
             $.retry = 0;
             lnrun++;
-            //await shareCodesFormat();
+            await shareCodesFormat();
             await jdFruit();
             if (lnrun == 15) {
                 console.log(`\n访问接口次数达到15次，休息60秒.....\n`);
@@ -63,8 +63,8 @@ async function jdFruit() {
         await initForFarm();
         if ($.farmInfo.farmUserPro) {
             console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${$.farmInfo.farmUserPro.shareCode}\n`);
-            //await masterHelpShare(); //助力好友
-            //await turntableFarm();//天天抽奖得好礼
+            await masterHelpShare(); //助力好友
+            await turntableFarm();//天天抽奖得好礼
             if ($.farmInfo.treeState === 2 || $.farmInfo.treeState === 3) {
                 //$.msg($.name, ``, `【京东账号${$.index}】${$.nickName || $.UserName}\n【提醒⏰】${$.farmInfo.farmUserPro.name}已可领取\n请去京东APP或微信小程序查看\n点击弹窗即达`, option);
                 return
