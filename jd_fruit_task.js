@@ -25,7 +25,7 @@ export DO_TEN_WATER_AGAIN="" 默认再次浇水
 */
 
 
-const $ = new Env("东东农场");
+const $ = new Env("东东农场日常任务");
 let cookiesArr = [],
   cookie = "",
   notify,
